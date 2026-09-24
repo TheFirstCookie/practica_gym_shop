@@ -26,7 +26,7 @@ export type Product = {
 };
 
 const categoryList: Omit<Category, "count">[] = [
-  { name: "Strength", slug: "strength", accent: "#ff6247" },
+  { name: "Strength", slug: "strength", accent: "#ff6b1a" },
   { name: "Conditioning", slug: "conditioning", accent: "#42c49f" },
   { name: "Recovery", slug: "recovery", accent: "#e3bb49" },
   { name: "Accessories", slug: "accessories", accent: "#7b91ff" }

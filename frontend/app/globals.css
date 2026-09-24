@@ -1,23 +1,36 @@
 :root {
   color-scheme: dark;
-  --page: #12110f;
-  --surface: #1d1b18;
-  --surface-2: #24211d;
-  --text: #f4efe5;
-  --muted: #aaa294;
-  --line: #39342d;
-  --brand: #ff6247;
-  --brand-contrast: #17100d;
+
+  /* Base: warm near-black layers, so orange reads as part of the palette, not a sticker. */
+  --page: #0e0c0a;
+  --surface: #1a1714;
+  --surface-2: #231f1b;
+  --soft-fill: #231f1b;
+  --footer: #080706;
+  --text: #f6f0e6;
+  --muted: #a89d8d;
+  --nav-text: #ded6c8;
+  --body-text: #cbc1b2;
+  --line: #352f28;
+  --header-line: rgba(246, 240, 230, 0.1);
+
+  /* Brand orange and the tints derived from it. */
+  --brand: #ff6b1a;
+  --brand-hover: #ff8542;
+  --brand-contrast: #140b05;
+  --brand-soft: rgba(255, 107, 26, 0.1);
+  --brand-line: rgba(255, 107, 26, 0.45);
+  --ember-glow: rgba(255, 107, 26, 0.24);
+
+  /* Supporting accents for status and tags; used sparingly. */
   --green: #42c49f;
   --gold: #e3bb49;
-  --nav-text: #ded7ca;
-  --body-text: #c9c0b2;
-  --soft-fill: #24211d;
-  --header-line: rgba(244, 239, 229, 0.12);
-  --card-shadow: rgba(0, 0, 0, 0.34);
-  --product-panel: rgba(29, 27, 24, 0.94);
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
-  --footer: #0c0b0a;
+  --hot: #ff4d3d;
+  --calm: #7b91ff;
+
+  --card-shadow: rgba(0, 0, 0, 0.45);
+  --product-panel: rgba(20, 17, 14, 0.94);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -30,6 +43,7 @@ html {
 
 body {
   margin: 0;
+  border-top: 3px solid var(--brand);
   background: var(--page);
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
@@ -430,6 +444,10 @@ img {
 }
 
 .hero-grid {
+  position: relative;
+  isolation: isolate;
+  /* Clips the glow so it never causes sideways scroll. */
+  overflow: clip;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
   gap: clamp(22px, 4vw, 56px);
@@ -437,9 +455,45 @@ img {
   padding: clamp(34px, 6vw, 78px) clamp(18px, 4vw, 54px) 28px;
 }
 
+/* One soft ember glow behind the hero image; kept as the only gradient on the page. */
+.hero-grid::before {
+  position: absolute;
+  top: -12%;
+  right: -10%;
+  z-index: -1;
+  width: min(1100px, 85vw);
+  aspect-ratio: 1;
+  background: radial-gradient(closest-side, var(--ember-glow), transparent);
+  content: "";
+  pointer-events: none;
+}
+
 .hero-copy {
   align-self: center;
   max-width: 660px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: clamp(20px, 4vw, 44px);
+  margin: 36px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.hero-stats dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.hero-stats dd {
+  margin: 4px 0 0;
+  color: var(--brand);
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 2.4rem;
+  line-height: 1;
 }
 
 .eyebrow {
@@ -505,6 +559,11 @@ h2 {
 .button.primary {
   background: var(--brand);
   color: var(--brand-contrast);
+  transition: background 120ms ease;
+}
+
+.button.primary:hover:not(:disabled) {
+  background: var(--brand-hover);
 }
 
 .button:disabled {
@@ -521,6 +580,11 @@ h2 {
   background: var(--surface);
   border-color: var(--line);
   color: var(--text);
+  transition: border-color 120ms ease;
+}
+
+.button.secondary:hover {
+  border-color: var(--brand);
 }
 
 .hero-product {
@@ -528,6 +592,7 @@ h2 {
   min-height: 480px;
   overflow: hidden;
   background: var(--surface-2);
+  border: 1px solid var(--brand-line);
   box-shadow: var(--shadow);
 }
 
@@ -547,12 +612,44 @@ h2 {
   border-left: 5px solid var(--brand);
 }
 
-.hero-product-panel span,
-.product-image span {
-  color: var(--brand);
-  font-size: 0.72rem;
+/* Tag badges: tone comes from the tag text (see tag-badge.tsx). */
+.tag-badge {
+  --tone: var(--brand);
+  justify-self: start;
+  width: fit-content;
+  padding: 6px 9px;
+  background: var(--tone);
+  color: var(--brand-contrast);
+  font-size: 0.7rem;
   font-weight: 900;
+  line-height: 1;
   text-transform: uppercase;
+}
+
+.tag-badge[data-tone="hot"] {
+  --tone: var(--hot);
+}
+
+.tag-badge[data-tone="fresh"] {
+  --tone: var(--green);
+}
+
+.tag-badge[data-tone="calm"] {
+  --tone: var(--calm);
+}
+
+.product-tag,
+.detail-tag {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+}
+
+.detail-tag {
+  left: 18px;
+  top: 18px;
+  padding: 9px 12px;
+  font-size: 0.75rem;
 }
 
 .hero-product-panel strong {
@@ -579,6 +676,12 @@ h2 {
   padding: 22px;
   background: var(--surface);
   border-right: 1px solid var(--line);
+  transition: background 160ms ease;
+}
+
+.category-tile:hover,
+.category-tile:focus-visible {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
 }
 
 .category-tile::before {
@@ -588,6 +691,12 @@ h2 {
   margin-bottom: 18px;
   background: var(--accent);
   content: "";
+  transition: width 200ms ease;
+}
+
+.category-tile:hover::before,
+.category-tile:focus-visible::before {
+  width: 100%;
 }
 
 .category-tile span,
@@ -601,6 +710,7 @@ h2 {
 .category-tile strong {
   display: block;
   margin-top: 8px;
+  color: var(--accent);
   font-size: 2rem;
 }
 
@@ -640,12 +750,17 @@ h2 {
   min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .product-card:hover {
+  border-color: var(--brand-line);
   box-shadow: 0 16px 40px var(--card-shadow);
   transform: translateY(-3px);
+}
+
+.product-card:hover h3 {
+  color: var(--brand);
 }
 
 .featured-card {
@@ -672,14 +787,6 @@ h2 {
 .featured-card .product-image img {
   position: absolute;
   inset: 0;
-}
-
-.product-image span {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  padding: 8px 10px;
-  background: var(--surface);
 }
 
 .product-info {
@@ -848,18 +955,6 @@ h2 {
   background: var(--soft-fill);
 }
 
-.detail-image span {
-  position: absolute;
-  left: 18px;
-  top: 18px;
-  padding: 9px 12px;
-  background: var(--brand);
-  color: var(--brand-contrast);
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
 .detail-copy {
   align-self: center;
 }
@@ -882,6 +977,7 @@ h2 {
 }
 
 .price-row strong {
+  color: var(--brand);
   font-size: 2.2rem;
 }
 
@@ -897,6 +993,15 @@ h2 {
 
 .price-row .out-of-stock {
   color: var(--muted);
+}
+
+/* Scoped to beat the generic .detail-copy p styles. */
+.detail-copy .eyebrow {
+  color: var(--brand);
+}
+
+.detail-copy .eyebrow a:hover {
+  color: var(--text);
 }
 
 /* Scoped to beat the generic .detail-copy p styles. */
@@ -1057,6 +1162,7 @@ h2 {
   gap: 12px;
   padding: 22px;
   background: var(--surface-2);
+  border-top: 4px solid var(--brand);
   color: var(--text);
 }
 
@@ -1074,6 +1180,107 @@ h2 {
 .summary-panel p {
   color: var(--body-text);
   line-height: 1.55;
+}
+
+/* Marquee: full-bleed orange band that scrolls store promises. */
+
+.marquee {
+  overflow: hidden;
+  background: var(--brand);
+  color: var(--brand-contrast);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 38s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-list {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 0;
+  padding: 14px 14px 14px 0;
+  list-style: none;
+}
+
+.marquee-list li {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.marquee-list .marquee-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--brand-contrast);
+  transform: rotate(45deg);
+}
+
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Perks band: the second orange block, closing the catalog before the FAQ. */
+
+.perks-band {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+  gap: clamp(28px, 5vw, 72px);
+  padding: clamp(40px, 6vw, 84px) clamp(18px, 4vw, 54px);
+  background: var(--brand);
+  color: var(--brand-contrast);
+}
+
+.perks-band .eyebrow {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.perks-heading h2 {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(2.4rem, 4.5vw, 4rem);
+  font-weight: 400;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.perks-list {
+  display: grid;
+  /* One column per perk, so adding or removing one in store-info.ts needs no CSS change. */
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.perks-list li {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 4px clamp(14px, 2vw, 24px);
+  border-left: 2px solid rgba(20, 11, 5, 0.25);
+}
+
+.perks-list strong {
+  font-size: 1.05rem;
+  text-transform: uppercase;
+}
+
+.perks-list p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 /* FAQ */
@@ -1188,7 +1395,7 @@ h2 {
   padding: clamp(48px, 7vw, 96px) clamp(18px, 4vw, 54px) 24px;
   overflow: hidden;
   background: var(--footer);
-  border-top: 1px solid var(--header-line);
+  border-top: 4px solid var(--brand);
 }
 
 .footer-top {
@@ -1307,6 +1514,10 @@ h2 {
   .footer-links a {
     transition: none;
   }
+
+  .marquee-track {
+    animation: none;
+  }
 }
 
 @media (max-width: 960px) {
@@ -1323,8 +1534,14 @@ h2 {
   }
 
   .faq-section,
-  .footer-top {
+  .footer-top,
+  .perks-band {
     grid-template-columns: 1fr;
+  }
+
+  .perks-list {
+    grid-auto-flow: row;
+    row-gap: 28px;
   }
 
   .faq-intro {
@@ -1403,6 +1620,10 @@ h2 {
   .product-grid,
   .mini-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-stats dd {
+    font-size: 2rem;
   }
 
   .featured-card {

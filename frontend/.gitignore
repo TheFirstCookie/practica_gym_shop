@@ -1,0 +1,20 @@
+# Dependencies (recreated by `npm install`)
+node_modules/
+
+# Next.js build output
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Local env files hold secrets; only the .example file is committed
+.env*.local
+.env
+
+# Vercel CLI
+.vercel/
+
+# Logs and OS/editor junk
+npm-debug.log*
+.DS_Store
+Thumbs.db

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatPrice, type Product } from "@/lib/catalog";
+import { TagBadge } from "./tag-badge";
 
 type ProductGridProps = {
   products: Product[];
@@ -30,7 +31,7 @@ export function ProductGrid({ products, featureFirst = false, clearHref }: Produ
         >
           <div className="product-image">
             <img src={product.image} alt={product.name} />
-            <span>{product.tag}</span>
+            <TagBadge tag={product.tag} className="product-tag" />
           </div>
           <div className="product-info">
             <div>

@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "How long does delivery take?",
     answer: [
-      "Small items ship within 1–2 working days and usually arrive 2–4 days later. Large pieces such as bikes and racks go out by freight, and the carrier contacts you to book a delivery slot."
+      "Every order arrives within 15 days of purchase. Large pieces such as bikes and racks go out by freight, and the carrier contacts you to book a delivery slot."
     ]
   },
   {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Zap } from "lucide-react";
 import {
   applyFilters,
+  brands,
   categories,
   formatPrice,
   getBrandFacets,
@@ -13,6 +14,9 @@ import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
 import { FaqSection } from "@/app/components/faq-section";
+import { MarqueeStrip } from "@/app/components/marquee-strip";
+import { PerksBand } from "@/app/components/perks-band";
+import { TagBadge } from "@/app/components/tag-badge";
 
 export default function Home({
   searchParams
@@ -45,12 +49,26 @@ export default function Home({
               <span>Strength picks</span>
             </Link>
           </div>
+          <dl className="hero-stats">
+            <div>
+              <dt>Products</dt>
+              <dd>{products.length}</dd>
+            </div>
+            <div>
+              <dt>Brands</dt>
+              <dd>{brands.length}</dd>
+            </div>
+            <div>
+              <dt>Categories</dt>
+              <dd>{categories.length}</dd>
+            </div>
+          </dl>
         </div>
 
         <div className="hero-product">
           <img src={featured[0].image} alt={featured[0].name} />
           <div className="hero-product-panel">
-            <span>{featured[0].tag}</span>
+            <TagBadge tag={featured[0].tag} />
             <strong>{featured[0].name}</strong>
             <small>
               {formatPrice(featured[0].price)} - {featured[0].stock} in stock
@@ -58,6 +76,8 @@ export default function Home({
           </div>
         </div>
       </section>
+
+      <MarqueeStrip />
 
       <section className="category-strip" aria-label="Featured categories">
         {categories.map((category) => (
@@ -94,6 +114,8 @@ export default function Home({
           clearHref="/#catalog"
         />
       </section>
+
+      <PerksBand />
 
       <FaqSection />
     </main>

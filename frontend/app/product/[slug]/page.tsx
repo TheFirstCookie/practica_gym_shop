@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { formatPrice, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
 import { AddToCart } from "@/app/components/add-to-cart";
+import { TagBadge } from "@/app/components/tag-badge";
 
 type ProductPageProps = {
   params: { slug: string };
@@ -31,7 +32,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       <section className="product-detail">
         <div className="detail-image">
           <img src={product.image} alt={product.name} />
-          <span>{product.tag}</span>
+          <TagBadge tag={product.tag} className="detail-tag" />
         </div>
 
         <div className="detail-copy">
