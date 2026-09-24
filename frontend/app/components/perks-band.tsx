@@ -1,11 +1,10 @@
-import { RotateCcw, ShieldCheck, Truck, LockKeyhole, type LucideIcon } from "lucide-react";
+import { RotateCcw, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { storePerks, type StorePerk } from "@/lib/store-info";
 
 const perkIcons: Record<StorePerk["id"], LucideIcon> = {
-  dispatch: Truck,
+  shipping: Truck,
   returns: RotateCcw,
-  warranty: ShieldCheck,
-  checkout: LockKeyhole
+  warranty: ShieldCheck
 };
 
 export function PerksBand() {

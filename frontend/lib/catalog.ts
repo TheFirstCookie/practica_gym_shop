@@ -184,7 +184,8 @@ export type ProductFilters = {
   sort: SortOption;
 };
 
-type SearchParams = Record<string, string | string[] | undefined>;
+// Shape of a page's resolved `searchParams` in the App Router.
+export type SearchParams = Record<string, string | string[] | undefined>;
 
 export function parseFilters(searchParams: SearchParams): ProductFilters {
   const brandParam = searchParams.brand ?? [];

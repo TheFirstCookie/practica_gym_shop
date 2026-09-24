@@ -5,31 +5,36 @@ import {
   categories,
   getBrandFacets,
   getProductsByCategory,
-  parseFilters
+  parseFilters,
+  type SearchParams
 } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
 
 type CategoryPageProps = {
-  params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
 };
 
-export function generateMetadata({ params }: Pick<CategoryPageProps, "params">): Metadata {
-  const category = categories.find((item) => item.slug === params.slug);
+export async function generateMetadata({
+  params
+}: Pick<CategoryPageProps, "params">): Promise<Metadata> {
+  const { slug } = await params;
+  const category = categories.find((item) => item.slug === slug);
   return category ? { title: category.name } : {};
 }
 
-export default function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const category = categories.find((item) => item.slug === params.slug);
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  const { slug } = await params;
+  const category = categories.find((item) => item.slug === slug);
 
   if (!category) {
     notFound();
   }
 
-  const products = getProductsByCategory(params.slug);
-  const filters = parseFilters(searchParams);
+  const products = getProductsByCategory(slug);
+  const filters = parseFilters(await searchParams);
   const visible = applyFilters(products, filters);
 
   return (

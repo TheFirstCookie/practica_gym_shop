@@ -22,9 +22,12 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
   const listId = useId();
 
   // Keep the box in step with the URL when the results page changes query.
-  useEffect(() => {
+  // Adjusting state during render (not in an effect) avoids a second paint with the old text.
+  const [syncedQuery, setSyncedQuery] = useState(initialQuery);
+  if (initialQuery !== syncedQuery) {
+    setSyncedQuery(initialQuery);
     setValue(initialQuery);
-  }, [initialQuery]);
+  }
 
   useEffect(() => {
     if (!open) {

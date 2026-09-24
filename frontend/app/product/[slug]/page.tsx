@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Heart } from "lucide-react";
 import { formatPrice, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
 import { AddToCart } from "@/app/components/add-to-cart";
 import { TagBadge } from "@/app/components/tag-badge";
 
 type ProductPageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
-export function generateMetadata({ params }: ProductPageProps): Metadata {
-  const product = getProduct(params.slug);
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const product = getProduct((await params).slug);
   return product ? { title: product.name, description: product.description } : {};
 }
 
-export default function ProductPage({ params }: ProductPageProps) {
-  const product = getProduct(params.slug);
+export default async function ProductPage({ params }: ProductPageProps) {
+  const product = getProduct((await params).slug);
 
   if (!product) {
     notFound();
@@ -51,11 +50,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               {product.stock > 0 ? `${product.stock} in stock` : "Sold out"}
             </span>
           </div>
-          <AddToCart slug={product.slug} name={product.name} stock={product.stock}>
-            <button type="button" className="icon-button" aria-label="Save product">
-              <Heart size={19} />
-            </button>
-          </AddToCart>
+          <AddToCart slug={product.slug} name={product.name} stock={product.stock} />
           <ul className="spec-list">
             {product.specs.map((spec) => (
               <li key={spec}>{spec}</li>

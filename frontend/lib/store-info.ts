@@ -1,16 +1,16 @@
 // Store-wide promises shown in the marquee and the perks band.
 // Keep these in line with the FAQ copy so the site never contradicts itself.
 export type StorePerk = {
-  id: "dispatch" | "returns" | "warranty" | "checkout";
+  id: "shipping" | "returns" | "warranty";
   title: string;
   detail: string;
 };
 
 export const storePerks: StorePerk[] = [
   {
-    id: "dispatch",
-    title: "Ships in 1–2 days",
-    detail: "Small items leave the warehouse fast. Freight pieces get a booked slot."
+    id: "shipping",
+    title: "15-day shipping",
+    detail: "Every order arrives within 15 days. Freight pieces get a booked slot."
   },
   {
     id: "returns",
@@ -21,10 +21,5 @@ export const storePerks: StorePerk[] = [
     id: "warranty",
     title: "Up to 5-year warranty",
     detail: "Manufacturer cover on every item, longest on steel frames."
-  },
-  {
-    id: "checkout",
-    title: "Stripe checkout",
-    detail: "Card details stay on Stripe's hosted page, never on our servers."
   }
 ];

@@ -7,18 +7,19 @@ import {
   parseFilters,
   parseQuery,
   products,
-  searchProducts
+  searchProducts,
+  type SearchParams
 } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
 
 type SearchPageProps = {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<SearchParams>;
 };
 
-export function generateMetadata({ searchParams }: SearchPageProps): Metadata {
-  const query = parseQuery(searchParams);
+export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
+  const query = parseQuery(await searchParams);
 
   return {
     title: query ? `Search: ${query}` : "Search",
@@ -27,11 +28,12 @@ export function generateMetadata({ searchParams }: SearchPageProps): Metadata {
   };
 }
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
-  const query = parseQuery(searchParams);
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedParams = await searchParams;
+  const query = parseQuery(resolvedParams);
   // An empty search shows the whole catalog rather than a blank page.
   const matches = query ? searchProducts(products, query) : products;
-  const filters = parseFilters(searchParams);
+  const filters = parseFilters(resolvedParams);
   const visible = applyFilters(matches, filters);
 
   return (

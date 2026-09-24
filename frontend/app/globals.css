@@ -31,6 +31,10 @@
   --card-shadow: rgba(0, 0, 0, 0.45);
   --product-panel: rgba(20, 17, 14, 0.94);
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+
+  /* Font stacks. --font-display / --font-body come from next/font (app/fonts.ts). */
+  --font-stack-display: var(--font-display), Impact, "Arial Narrow Bold", sans-serif;
+  --font-stack-body: var(--font-body), Arial, Helvetica, sans-serif;
 }
 
 * {
@@ -46,7 +50,7 @@ body {
   border-top: 3px solid var(--brand);
   background: var(--page);
   color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-stack-body);
   transition: background 180ms ease, color 180ms ease;
 }
 
@@ -491,7 +495,7 @@ img {
 .hero-stats dd {
   margin: 4px 0 0;
   color: var(--brand);
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: var(--font-stack-display);
   font-size: 2.4rem;
   line-height: 1;
 }
@@ -519,7 +523,9 @@ h3 {
 
 h1 {
   margin-bottom: 20px;
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: var(--font-stack-display);
+  /* The display face has one weight; this stops the browser faking a bold. */
+  font-weight: 400;
   font-size: clamp(3.2rem, 8vw, 7.4rem);
   line-height: 0.88;
   text-transform: uppercase;
@@ -727,7 +733,6 @@ h2 {
   margin-bottom: 28px;
 }
 
-.icon-button,
 .quantity-tools button {
   display: grid;
   width: 44px;
@@ -1210,7 +1215,7 @@ h2 {
 }
 
 .marquee-list li {
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: var(--font-stack-display);
   font-size: 1.35rem;
   line-height: 1;
   text-transform: uppercase;
@@ -1247,7 +1252,7 @@ h2 {
 }
 
 .perks-heading h2 {
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: var(--font-stack-display);
   font-size: clamp(2.4rem, 4.5vw, 4rem);
   font-weight: 400;
   line-height: 0.92;
@@ -1301,7 +1306,7 @@ h2 {
 
 .faq-intro h2 {
   margin-bottom: 18px;
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: var(--font-stack-display);
   font-size: clamp(3.2rem, 6vw, 5.5rem);
   font-weight: 400;
   line-height: 0.9;
@@ -1407,7 +1412,7 @@ h2 {
 .footer-intro h2 {
   max-width: 520px;
   margin-bottom: 20px;
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: var(--font-stack-display);
   font-size: clamp(2.4rem, 4.5vw, 4rem);
   font-weight: 400;
   line-height: 0.92;
@@ -1472,8 +1477,8 @@ h2 {
 .footer-wordmark {
   margin: clamp(48px, 7vw, 96px) 0 0;
   color: var(--brand);
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
-  font-size: 24.5vw;
+  font-family: var(--font-stack-display);
+  font-size: 27.5vw;
   line-height: 0.78;
   text-transform: uppercase;
   white-space: nowrap;

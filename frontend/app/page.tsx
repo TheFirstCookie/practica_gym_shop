@@ -8,7 +8,8 @@ import {
   getBrandFacets,
   hasActiveFilters,
   parseFilters,
-  products
+  products,
+  type SearchParams
 } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
@@ -18,13 +19,13 @@ import { MarqueeStrip } from "@/app/components/marquee-strip";
 import { PerksBand } from "@/app/components/perks-band";
 import { TagBadge } from "@/app/components/tag-badge";
 
-export default function Home({
-  searchParams
-}: {
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
+type HomeProps = {
+  searchParams: Promise<SearchParams>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
   const featured = products.slice(0, 4);
-  const filters = parseFilters(searchParams);
+  const filters = parseFilters(await searchParams);
   const visible = applyFilters(products, filters);
 
   return (

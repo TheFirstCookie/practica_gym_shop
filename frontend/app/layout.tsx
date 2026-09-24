@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SiteFooter } from "./components/site-footer";
 import { CartProvider } from "./components/cart-provider";
+import { bodyFont, displayFont } from "./fonts";
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${displayFont.variable} ${bodyFont.variable}`}>
       <body>
         <CartProvider>
           {children}

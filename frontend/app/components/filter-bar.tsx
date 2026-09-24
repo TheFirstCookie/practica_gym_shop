@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Check, ChevronDown, RotateCcw, X } from "lucide-react";
 import { sortOptions, type ProductFilters, type SortOption } from "@/lib/catalog";
 import { useHoverMenu } from "./use-hover-menu";
@@ -25,10 +25,14 @@ export function FilterBar({ brands, filters, resultCount }: FilterBarProps) {
   // Local copy so chips react instantly while the server re-renders the grid.
   const [current, setCurrent] = useState(filters);
 
-  const brandKey = filters.brands.join(",");
-  useEffect(() => {
-    setCurrent({ brands: brandKey ? brandKey.split(",") : [], sort: filters.sort });
-  }, [brandKey, filters.sort]);
+  // When the URL settles (or back/forward changes it), take the server's filters again.
+  // Compared by value, since `filters` is a new object on every render.
+  const filtersKey = `${filters.brands.join(",")}|${filters.sort}`;
+  const [syncedKey, setSyncedKey] = useState(filtersKey);
+  if (filtersKey !== syncedKey) {
+    setSyncedKey(filtersKey);
+    setCurrent(filters);
+  }
 
   function update(next: ProductFilters) {
     setCurrent(next);
