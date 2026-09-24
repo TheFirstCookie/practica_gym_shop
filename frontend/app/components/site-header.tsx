@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Dumbbell, ShoppingBag } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import { CategoriesMenu } from "./categories-menu";
+import { CartLink } from "./cart-link";
 
 export function SiteHeader({ compact = false }: { compact?: boolean }) {
   return (
@@ -13,10 +14,7 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
       </Link>
       <nav className="main-nav" aria-label="Primary navigation">
         <CategoriesMenu />
-        <Link href="/cart" className="cart-pill">
-          <ShoppingBag size={17} />
-          <span>Cart</span>
-        </Link>
+        <CartLink />
       </nav>
     </header>
   );

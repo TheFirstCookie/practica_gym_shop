@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart } from "lucide-react";
 import { formatPrice, getProduct, products } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
+import { AddToCart } from "@/app/components/add-to-cart";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = getProduct(params.slug);
@@ -37,17 +38,15 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <p>{product.description}</p>
           <div className="price-row">
             <strong>{formatPrice(product.price)}</strong>
-            <span>{product.stock} in stock</span>
+            <span className={product.stock === 0 ? "out-of-stock" : undefined}>
+              {product.stock > 0 ? `${product.stock} in stock` : "Sold out"}
+            </span>
           </div>
-          <div className="detail-actions">
-            <button type="button" className="button primary">
-              <ShoppingBag size={18} />
-              <span>Add to cart</span>
-            </button>
+          <AddToCart slug={product.slug} name={product.name} stock={product.stock}>
             <button type="button" className="icon-button" aria-label="Save product">
               <Heart size={19} />
             </button>
-          </div>
+          </AddToCart>
           <ul className="spec-list">
             {product.specs.map((spec) => (
               <li key={spec}>{spec}</li>
