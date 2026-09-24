@@ -4,7 +4,10 @@ import { SiteFooter } from "./components/site-footer";
 import { CartProvider } from "./components/cart-provider";
 
 export const metadata: Metadata = {
-  title: "ForgeFit Supply",
+  title: {
+    default: "ForgeFit Supply",
+    template: "%s | ForgeFit Supply"
+  },
   description: "Gym and sport equipment storefront draft"
 };
 

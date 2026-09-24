@@ -34,7 +34,7 @@ export function CartView() {
 
   if (items.length === 0) {
     return (
-      <section className="cart-empty">
+      <section className="empty-page">
         <p className="eyebrow">Cart</p>
         <h1>Your cart is empty</h1>
         <p>Nothing here yet. Find something that earns its floor space.</p>
