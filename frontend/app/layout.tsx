@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteFooter } from "./components/site-footer";
+import { CartProvider } from "./components/cart-provider";
 
 export const metadata: Metadata = {
   title: "ForgeFit Supply",
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
-        <SiteFooter />
+        <CartProvider>
+          {children}
+          <SiteFooter />
+        </CartProvider>
       </body>
     </html>
   );

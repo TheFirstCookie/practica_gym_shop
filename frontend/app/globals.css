@@ -116,10 +116,31 @@ img {
 }
 
 .cart-pill {
+  position: relative;
   padding: 10px 14px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 999px;
+}
+
+.cart-count {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  place-items: center;
+  background: var(--brand);
+  border-radius: 999px;
+  color: var(--brand-contrast);
+  font-size: 0.72rem;
+  font-weight: 900;
+  animation: cart-bump 260ms ease-out;
+}
+
+@keyframes cart-bump {
+  40% {
+    transform: scale(1.3);
+  }
 }
 
 .nav-menu {
@@ -236,6 +257,7 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cart-count,
   .dropdown {
     animation: none;
   }
@@ -317,6 +339,16 @@ h2 {
 .button.primary {
   background: var(--brand);
   color: var(--brand-contrast);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button.primary.is-added {
+  background: var(--text);
+  color: var(--page);
 }
 
 .button.secondary {
@@ -688,7 +720,34 @@ h2 {
 }
 
 .detail-actions {
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+.price-row .out-of-stock {
+  color: var(--muted);
+}
+
+/* Scoped to beat the generic .detail-copy p styles. */
+.detail-copy .cart-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cart-note a,
+.checkout-note {
+  color: var(--text);
+}
+
+.cart-note a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cart-note a:hover {
+  color: var(--brand);
 }
 
 .spec-list {
@@ -768,6 +827,51 @@ h2 {
   gap: 8px;
 }
 
+.quantity-tools button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.cart-item-image {
+  display: block;
+}
+
+.cart-item h2 a:hover {
+  color: var(--brand);
+}
+
+.cart-unit {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.cart-empty {
+  min-height: 55vh;
+  padding: clamp(48px, 8vw, 110px) clamp(18px, 4vw, 54px);
+}
+
+.cart-empty p:not(.eyebrow) {
+  max-width: 420px;
+  margin-bottom: 26px;
+  color: var(--body-text);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.cart-empty .button {
+  display: inline-flex;
+}
+
+.checkout-note {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-left: 4px solid var(--brand);
+  font-size: 0.9rem;
+}
+
 .quantity-tools span {
   min-width: 20px;
   text-align: center;
@@ -785,7 +889,8 @@ h2 {
   color: var(--text);
 }
 
-.summary-panel span {
+/* Direct child only, so the Checkout button's label isn't caught. */
+.summary-panel > span {
   color: var(--muted);
   font-weight: 900;
   text-transform: uppercase;
