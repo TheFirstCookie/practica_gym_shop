@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Heart, ShoppingBag } from "lucide-react";
-import { ThemeToggle } from "@/app/components/theme-toggle";
+import { Heart, ShoppingBag } from "lucide-react";
 import { formatPrice, getProduct, products } from "@/lib/catalog";
+import { SiteHeader } from "@/app/components/site-header";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const product = getProduct(params.slug);
@@ -17,19 +17,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   return (
     <main>
-      <header className="site-header compact">
-        <Link href="/" className="brand">
-          <span className="brand-mark">FS</span>
-          <span>ForgeFit Supply</span>
-        </Link>
-        <div className="header-actions">
-          <Link href="/" className="back-link">
-            <ArrowLeft size={17} />
-            <span>Back to shop</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
+      <SiteHeader compact />
 
       <section className="product-detail">
         <div className="detail-image">
@@ -38,7 +26,13 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
         </div>
 
         <div className="detail-copy">
-          <p className="eyebrow">{product.category}</p>
+          <p className="eyebrow">
+            <Link href={`/category/${product.categorySlug}?brand=${product.brandSlug}`}>
+              {product.brand}
+            </Link>
+            {" / "}
+            <Link href={`/category/${product.categorySlug}`}>{product.category}</Link>
+          </p>
           <h1>{product.name}</h1>
           <p>{product.description}</p>
           <div className="price-row">

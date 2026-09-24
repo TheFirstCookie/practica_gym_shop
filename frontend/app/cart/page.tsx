@@ -1,7 +1,6 @@
-import Link from "next/link";
-import { ArrowLeft, CreditCard, Minus, Plus, Trash2 } from "lucide-react";
-import { ThemeToggle } from "@/app/components/theme-toggle";
+import { CreditCard, Minus, Plus, Trash2 } from "lucide-react";
 import { formatPrice, products } from "@/lib/catalog";
+import { SiteHeader } from "@/app/components/site-header";
 
 const cartItems = products.slice(0, 3);
 const subtotal = cartItems.reduce((total, product) => total + product.price, 0);
@@ -9,19 +8,7 @@ const subtotal = cartItems.reduce((total, product) => total + product.price, 0);
 export default function CartPage() {
   return (
     <main>
-      <header className="site-header compact">
-        <Link href="/" className="brand">
-          <span className="brand-mark">FS</span>
-          <span>ForgeFit Supply</span>
-        </Link>
-        <div className="header-actions">
-          <Link href="/" className="back-link">
-            <ArrowLeft size={17} />
-            <span>Continue shopping</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
+      <SiteHeader compact />
 
       <section className="cart-layout">
         <div>

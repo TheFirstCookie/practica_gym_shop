@@ -5,11 +5,18 @@ export type Category = {
   accent: string;
 };
 
+export type Brand = {
+  name: string;
+  slug: string;
+};
+
 export type Product = {
   name: string;
   slug: string;
   category: string;
   categorySlug: string;
+  brand: string;
+  brandSlug: string;
   price: number;
   stock: number;
   tag: string;
@@ -19,10 +26,18 @@ export type Product = {
 };
 
 export const categories: Category[] = [
-  { name: "Strength", slug: "strength", count: 18, accent: "#f04d32" },
-  { name: "Conditioning", slug: "conditioning", count: 14, accent: "#0f9d7a" },
-  { name: "Recovery", slug: "recovery", count: 9, accent: "#d0aa3b" },
-  { name: "Accessories", slug: "accessories", count: 22, accent: "#4967db" }
+  { name: "Strength", slug: "strength", count: 18, accent: "#ff6247" },
+  { name: "Conditioning", slug: "conditioning", count: 14, accent: "#42c49f" },
+  { name: "Recovery", slug: "recovery", count: 9, accent: "#e3bb49" },
+  { name: "Accessories", slug: "accessories", count: 22, accent: "#7b91ff" }
+];
+
+// Placeholder brands until the real ones come from the backend.
+export const brands: Brand[] = [
+  { name: "Ironline", slug: "ironline" },
+  { name: "Tempo Labs", slug: "tempo-labs" },
+  { name: "Groundwork", slug: "groundwork" },
+  { name: "Kinetic Supply", slug: "kinetic-supply" }
 ];
 
 export const products: Product[] = [
@@ -31,6 +46,8 @@ export const products: Product[] = [
     slug: "ironclad-hex-dumbbell-set",
     category: "Strength",
     categorySlug: "strength",
+    brand: "Ironline",
+    brandSlug: "ironline",
     price: 229,
     stock: 12,
     tag: "Best seller",
@@ -45,6 +62,8 @@ export const products: Product[] = [
     slug: "tempo-sprint-bike",
     category: "Conditioning",
     categorySlug: "conditioning",
+    brand: "Tempo Labs",
+    brandSlug: "tempo-labs",
     price: 649,
     stock: 5,
     tag: "Low stock",
@@ -59,6 +78,8 @@ export const products: Product[] = [
     slug: "competition-kettlebell",
     category: "Strength",
     categorySlug: "strength",
+    brand: "Kinetic Supply",
+    brandSlug: "kinetic-supply",
     price: 86,
     stock: 24,
     tag: "New",
@@ -73,6 +94,8 @@ export const products: Product[] = [
     slug: "gridlock-training-mat",
     category: "Accessories",
     categorySlug: "accessories",
+    brand: "Groundwork",
+    brandSlug: "groundwork",
     price: 58,
     stock: 31,
     tag: "Studio pick",
@@ -87,6 +110,8 @@ export const products: Product[] = [
     slug: "pulse-recovery-roller",
     category: "Recovery",
     categorySlug: "recovery",
+    brand: "Groundwork",
+    brandSlug: "groundwork",
     price: 72,
     stock: 16,
     tag: "Recovery",
@@ -101,6 +126,8 @@ export const products: Product[] = [
     slug: "wall-rack-pro",
     category: "Accessories",
     categorySlug: "accessories",
+    brand: "Ironline",
+    brandSlug: "ironline",
     price: 134,
     stock: 8,
     tag: "Space saver",
@@ -126,4 +153,63 @@ export function getProduct(slug: string) {
 
 export function getProductsByCategory(slug: string) {
   return products.filter((product) => product.categorySlug === slug);
+}
+
+// "featured" is the default order and isn't offered as a choice.
+export const sortOptions = [
+  { value: "price-asc", label: "Price: low to high" },
+  { value: "price-desc", label: "Price: high to low" }
+] as const;
+
+export type SortOption = "featured" | (typeof sortOptions)[number]["value"];
+
+export type ProductFilters = {
+  brands: string[];
+  sort: SortOption;
+};
+
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export function parseFilters(searchParams: SearchParams): ProductFilters {
+  const brandParam = searchParams.brand ?? [];
+  const requested = Array.isArray(brandParam) ? brandParam : [brandParam];
+  const selected = brands
+    .filter((brand) => requested.includes(brand.slug))
+    .map((brand) => brand.slug);
+  const sort =
+    sortOptions.find((option) => option.value === searchParams.sort)?.value ?? "featured";
+
+  return { brands: selected, sort };
+}
+
+export function hasActiveFilters(filters: ProductFilters) {
+  return filters.brands.length > 0 || filters.sort !== "featured";
+}
+
+export function applyFilters(items: Product[], filters: ProductFilters) {
+  const filtered =
+    filters.brands.length > 0
+      ? items.filter((product) => filters.brands.includes(product.brandSlug))
+      : items;
+
+  if (filters.sort === "price-asc") {
+    return [...filtered].sort((a, b) => a.price - b.price);
+  }
+
+  if (filters.sort === "price-desc") {
+    return [...filtered].sort((a, b) => b.price - a.price);
+  }
+
+  return filtered;
+}
+
+// Brands present in a product list, with counts, for the filter chips.
+// Selected brands stay listed so they can still be switched off.
+export function getBrandFacets(items: Product[], selected: string[]) {
+  return brands
+    .map((brand) => ({
+      ...brand,
+      count: items.filter((product) => product.brandSlug === brand.slug).length
+    }))
+    .filter((brand) => brand.count > 0 || selected.includes(brand.slug));
 }

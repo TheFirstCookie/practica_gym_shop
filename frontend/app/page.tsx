@@ -1,37 +1,31 @@
 import Link from "next/link";
+import { ArrowRight, Search, Zap } from "lucide-react";
 import {
-  ArrowRight,
-  Dumbbell,
-  Search,
-  ShoppingBag,
-  SlidersHorizontal,
-  Zap
-} from "lucide-react";
-import { ThemeToggle } from "@/app/components/theme-toggle";
-import { categories, formatPrice, products } from "@/lib/catalog";
+  applyFilters,
+  categories,
+  formatPrice,
+  getBrandFacets,
+  hasActiveFilters,
+  parseFilters,
+  products
+} from "@/lib/catalog";
+import { SiteHeader } from "@/app/components/site-header";
+import { FilterBar } from "@/app/components/filter-bar";
+import { ProductGrid } from "@/app/components/product-grid";
+import { FaqSection } from "@/app/components/faq-section";
 
-export default function Home() {
+export default function Home({
+  searchParams
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
   const featured = products.slice(0, 4);
+  const filters = parseFilters(searchParams);
+  const visible = applyFilters(products, filters);
 
   return (
     <main>
-      <header className="site-header">
-        <Link href="/" className="brand" aria-label="ForgeFit Supply home">
-          <span className="brand-mark">
-            <Dumbbell size={18} strokeWidth={2.6} />
-          </span>
-          <span>ForgeFit Supply</span>
-        </Link>
-        <nav className="main-nav" aria-label="Primary navigation">
-          <Link href="/category/strength">Strength</Link>
-          <Link href="/category/conditioning">Conditioning</Link>
-          <Link href="/cart" className="cart-pill">
-            <ShoppingBag size={17} />
-            <span>Cart</span>
-          </Link>
-          <ThemeToggle />
-        </nav>
-      </header>
+      <SiteHeader />
 
       <section className="hero-grid" aria-labelledby="home-title">
         <div className="hero-copy">
@@ -90,34 +84,23 @@ export default function Home() {
             <button type="button" aria-label="Search catalog">
               <Search size={18} />
             </button>
-            <button type="button" aria-label="Filter catalog">
-              <SlidersHorizontal size={18} />
-            </button>
           </div>
         </div>
 
-        <div className="product-grid">
-          {products.map((product, index) => (
-            <Link
-              href={`/product/${product.slug}`}
-              className={`product-card ${index === 0 ? "featured-card" : ""}`}
-              key={product.slug}
-            >
-              <div className="product-image">
-                <img src={product.image} alt={product.name} />
-                <span>{product.tag}</span>
-              </div>
-              <div className="product-info">
-                <div>
-                  <small>{product.category}</small>
-                  <h3>{product.name}</h3>
-                </div>
-                <strong>{formatPrice(product.price)}</strong>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <FilterBar
+          brands={getBrandFacets(products, filters.brands)}
+          filters={filters}
+          resultCount={visible.length}
+        />
+        {/* The big featured tile only makes sense in the default order. */}
+        <ProductGrid
+          products={visible}
+          featureFirst={!hasActiveFilters(filters)}
+          clearHref="/#catalog"
+        />
       </section>
+
+      <FaqSection />
     </main>
   );
 }
