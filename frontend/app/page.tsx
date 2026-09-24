@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Search, Zap } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 import {
   applyFilters,
   categories,
@@ -79,11 +79,6 @@ export default function Home({
           <div>
             <p className="eyebrow">First drop</p>
             <h2>Equipment that earns floor space</h2>
-          </div>
-          <div className="toolbar" aria-label="Catalog tools">
-            <button type="button" aria-label="Search catalog">
-              <Search size={18} />
-            </button>
           </div>
         </div>
 

@@ -2,8 +2,15 @@ import Link from "next/link";
 import { Dumbbell } from "lucide-react";
 import { CategoriesMenu } from "./categories-menu";
 import { CartLink } from "./cart-link";
+import { SearchBar } from "./search-bar";
 
-export function SiteHeader({ compact = false }: { compact?: boolean }) {
+type SiteHeaderProps = {
+  compact?: boolean;
+  // Prefills the search box on the results page.
+  query?: string;
+};
+
+export function SiteHeader({ compact = false, query }: SiteHeaderProps) {
   return (
     <header className={compact ? "site-header compact" : "site-header"}>
       <Link href="/" className="brand" aria-label="ForgeFit Supply home">
@@ -12,6 +19,7 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
         </span>
         <span>ForgeFit Supply</span>
       </Link>
+      <SearchBar initialQuery={query} />
       <nav className="main-nav" aria-label="Primary navigation">
         <CategoriesMenu />
         <CartLink />

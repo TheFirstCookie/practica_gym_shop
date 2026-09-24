@@ -33,7 +33,10 @@ export function FilterBar({ brands, filters, resultCount }: FilterBarProps) {
   function update(next: ProductFilters) {
     setCurrent(next);
 
-    const params = new URLSearchParams();
+    // Start from the current URL so params the bar doesn't own, like the search query, survive.
+    const params = new URLSearchParams(window.location.search);
+    params.delete("brand");
+    params.delete("sort");
     next.brands.forEach((slug) => params.append("brand", slug));
     if (next.sort !== "featured") {
       params.set("sort", next.sort);

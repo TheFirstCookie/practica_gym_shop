@@ -219,6 +219,76 @@ export function applyFilters(items: Product[], filters: ProductFilters) {
   return filtered;
 }
 
+export const MAX_QUERY_LENGTH = 80;
+
+export function parseQuery(searchParams: SearchParams) {
+  const param = searchParams.q;
+  const value = Array.isArray(param) ? param[0] : param;
+  return (value ?? "").trim().slice(0, MAX_QUERY_LENGTH);
+}
+
+// Lowercase, drop accents and turn punctuation into spaces, padded so a
+// word start can be found with `includes(" " + term)`.
+function normalize(text: string) {
+  const plain = text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  return ` ${plain} `;
+}
+
+// Crude plural handling so "kettlebells" still finds "kettlebell".
+function stem(term: string) {
+  return term.length > 3 && term.endsWith("s") && !term.endsWith("ss") ? term.slice(0, -1) : term;
+}
+
+function scoreProduct(product: Product, terms: string[]) {
+  const fields = [
+    { text: normalize(product.name), weight: 4 },
+    { text: normalize(`${product.brand} ${product.category} ${product.tag}`), weight: 2 },
+    { text: normalize(`${product.description} ${product.specs.join(" ")}`), weight: 1 }
+  ];
+  let score = 0;
+
+  for (const term of terms) {
+    // A hit at the start of a word ("dumb" in "dumbbell") counts double one inside it ("bell").
+    const best = Math.max(
+      ...fields.map(({ text, weight }) => {
+        if (text.includes(` ${term}`)) return weight;
+        if (text.includes(term)) return weight / 2;
+        return 0;
+      })
+    );
+
+    if (best === 0) {
+      return 0;
+    }
+
+    score += best;
+  }
+
+  return score;
+}
+
+// Every word in the query has to match somewhere; name hits rank highest.
+// Ties keep catalog order, since sort is stable.
+export function searchProducts(items: Product[], query: string) {
+  const terms = normalize(query).split(" ").filter(Boolean).map(stem);
+
+  if (terms.length === 0) {
+    return [];
+  }
+
+  return items
+    .map((product) => ({ product, score: scoreProduct(product, terms) }))
+    .filter((result) => result.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((result) => result.product);
+}
+
 // Brands present in a product list, with counts, for the filter chips.
 // Selected brands stay listed so they can still be switched off.
 export function getBrandFacets(items: Product[], selected: string[]) {

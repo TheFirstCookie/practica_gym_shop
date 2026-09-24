@@ -1,102 +1,73 @@
 import Link from "next/link";
-import { Dumbbell } from "lucide-react";
+import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { categories } from "@/lib/catalog";
-import { NewsletterForm } from "./newsletter-form";
 
-// "#" links are placeholders until those pages and accounts exist.
-const linkColumns = [
-  {
-    title: "Shop",
-    links: [
-      ...categories.map((category) => ({
-        label: category.name,
-        href: `/category/${category.slug}`
-      })),
-      { label: "All equipment", href: "/#catalog" }
-    ]
-  },
-  {
-    title: "Help",
-    links: [
-      { label: "FAQs", href: "/#faq" },
-      { label: "Delivery", href: "/#faq" },
-      { label: "Returns", href: "/#faq" },
-      { label: "Contact us", href: "mailto:hello@forgefit.example" }
-    ]
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About", href: "#" },
-      { label: "Our brands", href: "#" },
-      { label: "Sustainability", href: "#" },
-      { label: "Work with us", href: "#" }
-    ]
-  }
-];
-
-const socialLinks = [
-  { label: "Instagram", href: "#" },
-  { label: "TikTok", href: "#" },
-  { label: "YouTube", href: "#" },
-  { label: "X", href: "#" }
+const helpLinks = [
+  { label: "FAQs", href: "/#faq" },
+  { label: "Your cart", href: "/cart" },
+  { label: "Contact us", href: "mailto:hello@forgefit.example" }
 ];
 
 export function SiteFooter() {
   return (
     <footer className="site-footer">
-      <div className="footer-main">
-        <div className="newsletter-card">
-          <h2>Newsletter</h2>
-          <p>New drops, restocks and home gym setups. One email a month, no spam.</p>
-          <NewsletterForm />
+      <div className="footer-top">
+        <div className="footer-intro">
+          <p className="eyebrow">ForgeFit Supply</p>
+          <h2>Built for the room you train in.</h2>
+          <p>
+            Strength, conditioning and recovery gear from independent brands, picked for
+            home gyms and compact studios.
+          </p>
         </div>
 
         <nav className="footer-links" aria-label="Footer">
-          {linkColumns.map((column) => (
-            <div key={column.title}>
-              <h3>{column.title}</h3>
-              <ul>
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <Link href={link.href}>{link.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
-
-        <div className="footer-social">
-          <h3>Follow us</h3>
-          <ul>
-            {socialLinks.map((link) => (
-              <li key={link.label}>
-                <a href={link.href}>{link.label}</a>
+          <div>
+            <h3 className="eyebrow">Shop</h3>
+            <ul>
+              {categories.map((category) => (
+                <li key={category.slug}>
+                  <Link href={`/category/${category.slug}`}>
+                    <span>{category.name}</span>
+                    <small>{category.count}</small>
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link href="/#catalog">
+                  <span>All equipment</span>
+                  <ArrowUpRight size={16} />
+                </Link>
               </li>
-            ))}
-          </ul>
-        </div>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="eyebrow">Help</h3>
+            <ul>
+              {helpLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href}>
+                    <span>{link.label}</span>
+                    <ArrowUpRight size={16} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
       </div>
 
+      <p className="footer-wordmark" aria-hidden="true">
+        ForgeFit
+      </p>
+
       <div className="footer-bottom">
-        <div className="footer-brand">
-          <Link href="/" className="brand" aria-label="ForgeFit Supply home">
-            <span className="brand-mark">
-              <Dumbbell size={18} strokeWidth={2.6} />
-            </span>
-            <span>ForgeFit Supply</span>
-          </Link>
-          <span className="footer-tagline">
-            Built for the room
-            <br />
-            you train in.
-          </span>
-        </div>
-        <p>
-          © {new Date().getFullYear()} ForgeFit Supply. Portfolio project: payments run in
-          Stripe test mode.
-        </p>
+        <p>© {new Date().getFullYear()} ForgeFit Supply</p>
+        <a href="#" className="back-to-top">
+          <span>Back to top</span>
+          <ArrowUp size={15} strokeWidth={2.6} />
+        </a>
       </div>
     </footer>
   );
