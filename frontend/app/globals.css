@@ -488,6 +488,8 @@ h2 {
 }
 
 .featured-card {
+  display: flex;
+  flex-direction: column;
   grid-column: span 2;
   grid-row: span 2;
 }
@@ -499,8 +501,16 @@ h2 {
   background: var(--soft-fill);
 }
 
+/* The tile spans two rows, so the image stretches to fill whatever height that gives. */
 .featured-card .product-image {
-  aspect-ratio: 1.52 / 1;
+  flex: 1;
+  min-height: 280px;
+  aspect-ratio: auto;
+}
+
+.featured-card .product-image img {
+  position: absolute;
+  inset: 0;
 }
 
 .product-image span {
@@ -847,12 +857,12 @@ h2 {
   font-size: 0.85rem;
 }
 
-.cart-empty {
+.empty-page {
   min-height: 55vh;
   padding: clamp(48px, 8vw, 110px) clamp(18px, 4vw, 54px);
 }
 
-.cart-empty p:not(.eyebrow) {
+.empty-page p:not(.eyebrow) {
   max-width: 420px;
   margin-bottom: 26px;
   color: var(--body-text);
@@ -860,7 +870,7 @@ h2 {
   line-height: 1.6;
 }
 
-.cart-empty .button {
+.empty-page .button {
   display: inline-flex;
 }
 
@@ -1210,27 +1220,31 @@ h2 {
 
 @media (max-width: 640px) {
   .site-header,
-  .main-nav,
   .section-heading,
   .listing-hero {
     align-items: stretch;
     flex-direction: column;
   }
 
+  .site-header {
+    gap: 12px;
+    padding-top: 16px;
+    padding-bottom: 12px;
+  }
+
   .main-nav {
-    gap: 10px;
-  }
-
-  .nav-menu-trigger {
     justify-content: space-between;
-    width: 100%;
   }
 
-  /* On phones menus open in place and push the page down. */
   .dropdown {
-    position: static;
+    left: 0;
+    right: auto;
+    width: min(300px, calc(100vw - 36px));
+  }
+
+  .sort-menu .dropdown {
+    right: 0;
     width: auto;
-    padding-top: 0;
   }
 
   .hero-grid {
@@ -1272,9 +1286,12 @@ h2 {
   }
 
   .product-info,
-  .cart-item,
-  .mini-card {
+  .cart-item {
     grid-template-columns: 1fr;
+  }
+
+  .mini-card {
+    grid-template-columns: 72px 1fr auto;
   }
 
   .cart-item {

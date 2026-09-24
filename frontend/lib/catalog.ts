@@ -25,11 +25,11 @@ export type Product = {
   specs: string[];
 };
 
-export const categories: Category[] = [
-  { name: "Strength", slug: "strength", count: 18, accent: "#ff6247" },
-  { name: "Conditioning", slug: "conditioning", count: 14, accent: "#42c49f" },
-  { name: "Recovery", slug: "recovery", count: 9, accent: "#e3bb49" },
-  { name: "Accessories", slug: "accessories", count: 22, accent: "#7b91ff" }
+const categoryList: Omit<Category, "count">[] = [
+  { name: "Strength", slug: "strength", accent: "#ff6247" },
+  { name: "Conditioning", slug: "conditioning", accent: "#42c49f" },
+  { name: "Recovery", slug: "recovery", accent: "#e3bb49" },
+  { name: "Accessories", slug: "accessories", accent: "#7b91ff" }
 ];
 
 // Placeholder brands until the real ones come from the backend.
@@ -139,6 +139,12 @@ export const products: Product[] = [
   }
 ];
 
+// Counts come from the products so they can't drift out of sync.
+export const categories: Category[] = categoryList.map((category) => ({
+  ...category,
+  count: products.filter((product) => product.categorySlug === category.slug).length
+}));
+
 export function formatPrice(price: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -149,6 +155,16 @@ export function formatPrice(price: number) {
 
 export function getProduct(slug: string) {
   return products.find((product) => product.slug === slug);
+}
+
+// Same category first, topped up from the rest of the catalog so the row is never empty.
+export function getRelatedProducts(product: Product, limit = 3) {
+  const others = products.filter((item) => item.slug !== product.slug);
+
+  return [
+    ...others.filter((item) => item.categorySlug === product.categorySlug),
+    ...others.filter((item) => item.categorySlug !== product.categorySlug)
+  ].slice(0, limit);
 }
 
 export function getProductsByCategory(slug: string) {

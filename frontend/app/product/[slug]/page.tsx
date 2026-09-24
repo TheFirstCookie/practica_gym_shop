@@ -1,20 +1,28 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Heart } from "lucide-react";
-import { formatPrice, getProduct, products } from "@/lib/catalog";
+import { formatPrice, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { SiteHeader } from "@/app/components/site-header";
 import { AddToCart } from "@/app/components/add-to-cart";
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
+type ProductPageProps = {
+  params: { slug: string };
+};
+
+export function generateMetadata({ params }: ProductPageProps): Metadata {
+  const product = getProduct(params.slug);
+  return product ? { title: product.name, description: product.description } : {};
+}
+
+export default function ProductPage({ params }: ProductPageProps) {
   const product = getProduct(params.slug);
 
   if (!product) {
     notFound();
   }
 
-  const related = products
-    .filter((item) => item.categorySlug === product.categorySlug && item.slug !== product.slug)
-    .slice(0, 3);
+  const related = getRelatedProducts(product);
 
   return (
     <main>

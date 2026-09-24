@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   applyFilters,
@@ -14,6 +15,11 @@ type CategoryPageProps = {
   params: { slug: string };
   searchParams: Record<string, string | string[] | undefined>;
 };
+
+export function generateMetadata({ params }: Pick<CategoryPageProps, "params">): Metadata {
+  const category = categories.find((item) => item.slug === params.slug);
+  return category ? { title: category.name } : {};
+}
 
 export default function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const category = categories.find((item) => item.slug === params.slug);
