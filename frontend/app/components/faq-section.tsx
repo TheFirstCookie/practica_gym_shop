@@ -32,12 +32,6 @@ const faqs = [
     answer: [
       "Yes. Most of the catalog comes from small, independent makers. Use the brand filter on any category page to see one brand's range on its own."
     ]
-  },
-  {
-    question: "Is checkout secure?",
-    answer: [
-      "Payments are handled by Stripe on its own hosted checkout page, so card details never touch our servers. This store is a portfolio project running in Stripe test mode, so no real payment is taken."
-    ]
   }
 ];
 
