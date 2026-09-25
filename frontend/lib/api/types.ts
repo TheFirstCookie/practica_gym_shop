@@ -184,23 +184,31 @@ export type AdminBrand = {
   updatedAt: string;
 };
 
-export type DashboardDays = 7 | 30 | 90;
+/** Reporting window: the last 7, 30 or 90 days, or everything since the first sale. */
+export type DashboardRange = 7 | 30 | 90 | "all";
+
+export type ChartBucket = "day" | "week" | "month";
 
 export type Dashboard = {
   currency: string;
-  days: DashboardDays;
-  /** The last `days` days (today included), and the same span before that. */
+  range: DashboardRange;
+  /** Length of the window in days, today included. */
+  days: number;
+  /** First day of the window, "YYYY-MM-DD" (UTC). */
+  since: string;
+  /** Sales in the window, and in the same span before it (null for "all"). */
   sales: {
     revenueCents: number;
     orderCount: number;
     averageOrderCents: number;
-    previousRevenueCents: number;
-    previousOrderCount: number;
+    previousRevenueCents: number | null;
+    previousOrderCount: number | null;
     allTimeRevenueCents: number;
   };
   orders: { toShip: number; awaitingPayment: number };
-  /** One entry per UTC day, oldest first; `date` is "YYYY-MM-DD". */
-  daily: { date: string; revenueCents: number; orderCount: number }[];
+  /** Revenue over time, oldest first; long windows come grouped by week or month. */
+  bucket: ChartBucket;
+  series: { date: string; revenueCents: number; orderCount: number }[];
   topProducts: { productId: string | null; name: string; units: number; revenueCents: number }[];
   lowStock: { id: string; name: string; slug: string; stock: number; image: string | null }[];
   recentOrders: {

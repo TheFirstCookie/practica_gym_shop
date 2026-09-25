@@ -112,9 +112,13 @@ Open `/admin` and sign in with the Supabase account that has the admin role (see
 README for creating it). Anyone else is sent to the login page or told they lack access,
 and the API rejects their requests regardless of what the UI shows.
 
-- **Dashboard** (`/admin`): revenue for the last 7, 30 or 90 days against the period
-  before, paid orders, orders waiting to ship, a daily revenue chart (hover or tab through
-  the columns, or open it as a table), best sellers, low-stock products and recent orders.
+- **Search** (header, or press `Ctrl K` / `⌘ K` / `/` anywhere in the admin): finds orders
+  by number, email or name, products, categories and brands, and jumps to admin pages.
+  Arrow keys and Enter work; results open the matching page.
+- **Dashboard** (`/admin`): revenue, paid orders and average order for the last 7, 30 or
+  90 days (against the period before) or all time, plus orders to ship and open
+  checkouts. The revenue chart shows days, or weeks/months for long periods (hover or tab
+  through the columns, or open it as a table), then best sellers, low stock and recent orders.
 - **Orders** (`/admin/orders`): opens on *To ship* (paid orders). Search by email, name or
   order number, mark orders as shipped (with undo), and open an order for its items,
   shipping address (with a copy button for labels), timeline and a link to the payment in
@@ -126,5 +130,5 @@ and the API rejects their requests regardless of what the UI shows.
 - **Products** (`/admin/products`): search, create, edit, upload photos, hide from or
   restore to the shop. Photos are resized in the browser before upload (longest side
   1600px, WebP), so a 10 MB phone photo becomes a few hundred KB.
-- **Categories** and **Brands**: add, rename, change a category's tile colour and order,
-  and delete ones no product uses. Changes show on the storefront right away.
+- **Categories** and **Brands**: filter, add, rename, change a category's tile colour and
+  order, and delete ones no product uses. Changes show on the storefront right away.

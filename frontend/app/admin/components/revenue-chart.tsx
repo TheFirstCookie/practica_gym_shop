@@ -1,18 +1,36 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { Dashboard } from "@/lib/api/types";
+import type { ChartBucket, Dashboard } from "@/lib/api/types";
 import { formatPrice } from "@/lib/format";
 
-type Day = Dashboard["daily"][number];
+type Point = Dashboard["series"][number];
 
-const dayLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-const longDayLabel = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC"
-});
+const utc = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-US", { ...options, timeZone: "UTC" });
+
+/** How each bucket is written on the axis (short) and in the tooltip and table (long). */
+type BucketLabels = { axis: Intl.DateTimeFormat; long: (date: Date) => string; noun: string; column: string };
+
+const LABELS: Record<ChartBucket, BucketLabels> = {
+  day: {
+    axis: utc({ month: "short", day: "numeric" }),
+    long: (date) => utc({ weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(date),
+    noun: "day",
+    column: "Day"
+  },
+  week: {
+    axis: utc({ month: "short", day: "numeric" }),
+    long: (date) => `Week of ${utc({ month: "short", day: "numeric", year: "numeric" }).format(date)}`,
+    noun: "week",
+    column: "Week"
+  },
+  month: {
+    axis: utc({ month: "short", year: "2-digit" }),
+    long: (date) => utc({ month: "long", year: "numeric" }).format(date),
+    noun: "month",
+    column: "Month"
+  }
+};
 
 /** "2026-09-25" is a UTC day from the API; format it without shifting to local time. */
 const toDate = (date: string) => new Date(`${date}T00:00:00Z`);
@@ -38,21 +56,22 @@ function compactPrice(cents: number, currency: string) {
 
 const countOrders = (count: number) => `${count} ${count === 1 ? "order" : "orders"}`;
 
-function describeDay(day: Day, currency: string) {
-  const date = longDayLabel.format(toDate(day.date));
-  return `${date}: ${formatPrice(day.revenueCents, currency)}, ${countOrders(day.orderCount)}`;
-}
-
 type RevenueChartProps = {
-  daily: Day[];
+  series: Point[];
+  bucket: ChartBucket;
   currency: string;
 };
 
 /**
- * Daily revenue as columns, one per day. Every column is focusable and shows its day,
- * revenue and order count on hover or focus; the same numbers are in the table below.
+ * Revenue as columns, one per day, week or month. Every column is focusable and shows its
+ * period, revenue and order count on hover or focus; the same numbers are in the table below.
  */
-export function RevenueChart({ daily, currency }: RevenueChartProps) {
+export function RevenueChart({ series: daily, bucket, currency }: RevenueChartProps) {
+  const labels = LABELS[bucket];
+  const describe = (point: Point) => {
+    const period = labels.long(toDate(point.date));
+    return `${period}: ${formatPrice(point.revenueCents, currency)}, ${countOrders(point.orderCount)}`;
+  };
   const tableId = useId();
   const [active, setActive] = useState<number | null>(null);
   const ticks = niceScale(Math.max(0, ...daily.map((day) => day.revenueCents)));
@@ -79,7 +98,12 @@ export function RevenueChart({ daily, currency }: RevenueChartProps) {
             ))}
         </div>
 
-        <div className="revenue-chart-bars" role="list" aria-label="Revenue per day" aria-describedby={tableId}>
+        <div
+          className="revenue-chart-bars"
+          role="list"
+          aria-label={`Revenue per ${labels.noun}`}
+          aria-describedby={tableId}
+        >
           {daily.map((day, index) => (
             <div
               key={day.date}
@@ -87,7 +111,7 @@ export function RevenueChart({ daily, currency }: RevenueChartProps) {
               tabIndex={0}
               className="revenue-chart-slot"
               data-active={active === index || undefined}
-              aria-label={describeDay(day, currency)}
+              aria-label={describe(day)}
               onPointerEnter={() => setActive(index)}
               onFocus={() => setActive(index)}
               onBlur={() => setActive(null)}
@@ -110,7 +134,7 @@ export function RevenueChart({ daily, currency }: RevenueChartProps) {
           >
             <strong>{formatPrice(activeDay.revenueCents, currency)}</strong>
             <span>{countOrders(activeDay.orderCount)}</span>
-            <small>{longDayLabel.format(toDate(activeDay.date))}</small>
+            <small>{labels.long(toDate(activeDay.date))}</small>
           </div>
         )}
       </div>
@@ -118,7 +142,7 @@ export function RevenueChart({ daily, currency }: RevenueChartProps) {
       <div className="revenue-chart-axis" aria-hidden="true">
         {daily.map((day, index) => (
           <span key={day.date}>
-            {showLabel(index) ? dayLabel.format(toDate(day.date)) : ""}
+            {showLabel(index) ? labels.axis.format(toDate(day.date)) : ""}
           </span>
         ))}
       </div>
@@ -128,7 +152,7 @@ export function RevenueChart({ daily, currency }: RevenueChartProps) {
         <table id={tableId}>
           <thead>
             <tr>
-              <th scope="col">Day</th>
+              <th scope="col">{labels.column}</th>
               <th scope="col" className="numeric">
                 Orders
               </th>
@@ -143,7 +167,7 @@ export function RevenueChart({ daily, currency }: RevenueChartProps) {
               .reverse()
               .map((day) => (
                 <tr key={day.date}>
-                  <td>{longDayLabel.format(toDate(day.date))}</td>
+                  <td>{labels.long(toDate(day.date))}</td>
                   <td className="numeric">{day.orderCount}</td>
                   <td className="numeric">{formatPrice(day.revenueCents, currency)}</td>
                 </tr>

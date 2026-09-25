@@ -52,12 +52,328 @@
   border-bottom-color: var(--brand);
 }
 
-.admin-account {
+/* Header tools: search and the account menu */
+
+.admin-header-tools {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.admin-search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 270px;
+  height: 38px;
+  padding: 0 8px 0 12px;
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.admin-search-trigger span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-search-trigger:hover,
+.admin-search-trigger:focus-visible {
+  border-color: var(--brand);
+  color: var(--nav-text);
+  outline: none;
+}
+
+.admin-root kbd {
+  padding: 2px 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-account {
+  position: relative;
+}
+
+.admin-account-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 280px;
+  height: 38px;
+  padding: 0 10px 0 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--nav-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-account-button:hover,
+.admin-account-button[aria-expanded="true"] {
+  border-color: var(--brand-line);
+  color: var(--text);
+}
+
+.admin-account-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account-chevron {
+  flex: none;
+  transition: transform 150ms ease;
+}
+
+.admin-account-button[aria-expanded="true"] .admin-account-chevron {
+  transform: rotate(180deg);
+}
+
+.admin-avatar {
+  display: grid;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  background: var(--brand);
+  border-radius: 50%;
+  color: var(--brand-contrast);
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.admin-avatar-large {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.admin-account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: 270px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.admin-account-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  padding: 10px 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-account-menu-header > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.admin-account-menu-header small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.admin-account-menu-header strong {
+  overflow: hidden;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account-menu [role="menuitem"] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  color: var(--nav-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.admin-account-menu [role="menuitem"]:hover,
+.admin-account-menu [role="menuitem"]:focus-visible {
+  background: var(--surface-2);
+  color: var(--text);
+  outline: none;
+}
+
+.admin-account-menu .admin-account-signout:hover,
+.admin-account-menu .admin-account-signout:focus-visible {
+  color: var(--hot);
+}
+
+/* Search dialog (Ctrl/Cmd + K) */
+
+.admin-search-dialog {
+  width: min(640px, calc(100% - 32px));
+  max-width: none;
+  max-height: none;
+  margin: 12vh auto auto;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+}
+
+.admin-search-dialog::backdrop {
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.admin-search-panel {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--brand);
+  border-radius: 8px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55);
+}
+
+.admin-search-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-search-field {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0 14px 16px;
+  color: var(--muted);
+}
+
+.admin-search-close {
+  padding: 4px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.admin-search-close:hover kbd {
+  border-color: var(--brand);
+  color: var(--text);
+}
+
+.admin-search-field input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.admin-search-results {
+  max-height: min(56vh, 480px);
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.admin-search-group {
+  margin: 0;
+  padding: 10px 10px 4px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-search-result {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+.admin-search-result[aria-selected="true"] {
+  background: var(--surface-2);
+  box-shadow: inset 3px 0 0 var(--brand);
+  color: var(--brand);
+}
+
+.admin-search-result span {
+  display: grid;
+  min-width: 0;
+}
+
+.admin-search-result strong,
+.admin-search-result small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-search-result strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.admin-search-result small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.admin-search-enter {
+  color: var(--muted);
+}
+
+.admin-search-status {
+  margin: 0;
+  padding: 0 16px 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.admin-search-status:empty {
+  display: none;
+}
+
+.admin-toolbar-count {
   color: var(--muted);
   font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .admin-link-button {
@@ -976,40 +1292,39 @@
 
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .admin-stat {
   display: grid;
   align-content: start;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
-  padding: 18px 20px;
+  padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--line);
+  border-radius: 6px;
 }
 
-.admin-stat-hero {
-  border-top: 3px solid var(--brand);
+.admin-stat-accent {
+  box-shadow: inset 0 2px 0 var(--brand);
 }
 
 .admin-stat-label {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .admin-stat-value {
   overflow-wrap: anywhere;
   color: var(--text);
-  font-size: 1.9rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  line-height: 1.1;
-}
-
-.admin-stat-hero .admin-stat-value {
-  font-size: 2.4rem;
+  line-height: 1.15;
 }
 
 .admin-stat-note,
@@ -1017,8 +1332,10 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  overflow: hidden;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
 }
 
 .admin-stat-change[data-direction="up"] {
@@ -1312,7 +1629,11 @@
   }
 
   .admin-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-search-trigger {
+    width: 200px;
   }
 }
 
@@ -1346,18 +1667,43 @@
     white-space: nowrap;
   }
 
-  /* Two small tiles side by side; the headline and the last tile take the full width. */
-  .admin-stat-hero,
-  .admin-stat:last-child {
+  /* Two tiles side by side; revenue takes the full width. */
+  .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-stat-accent {
     grid-column: 1 / -1;
   }
 
-  .admin-stat {
-    padding: 14px 16px;
+  .admin-stat-value {
+    font-size: 1.25rem;
   }
 
-  .admin-stat-value {
-    font-size: 1.5rem;
+  /* The header keeps just the icons; the nav gets its own scrolling row. */
+  .admin-header-tools {
+    margin-left: auto;
+  }
+
+  .admin-search-trigger {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .admin-search-trigger span,
+  .admin-search-trigger kbd,
+  .admin-account-email,
+  .admin-account-chevron {
+    display: none;
+  }
+
+  .admin-account-button {
+    padding: 0 3px;
+  }
+
+  .admin-search-dialog {
+    margin-top: 16px;
   }
 
   .admin-taxonomy-form,
@@ -1368,10 +1714,6 @@
   .revenue-chart-plot,
   .revenue-chart-axis {
     margin-left: 44px;
-  }
-
-  .admin-account span {
-    display: none;
   }
 
   .admin-field-row,

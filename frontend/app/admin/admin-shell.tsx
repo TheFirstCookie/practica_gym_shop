@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ArrowUpRight, Dumbbell, LogOut, RotateCcw } from "lucide-react";
+import { Dumbbell, LogOut, RotateCcw } from "lucide-react";
 import { useAdminSession } from "./admin-session";
+import { AccountMenu } from "./components/account-menu";
+import { AdminSearch } from "./components/admin-search";
 
 const LOGIN_PATH = "/admin/login";
 
@@ -62,17 +64,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               {item.label}
             </Link>
           ))}
-          <Link href="/" target="_blank" rel="noreferrer">
-            <span>View shop</span>
-            <ArrowUpRight size={15} />
-          </Link>
         </nav>
-        <div className="admin-account">
-          <span>{state.admin.email}</span>
-          <button type="button" className="admin-link-button" onClick={signOut}>
-            <LogOut size={15} />
-            <span>Sign out</span>
-          </button>
+        <div className="admin-header-tools">
+          <AdminSearch />
+          <AccountMenu email={state.admin.email} onSignOut={signOut} />
         </div>
       </header>
       <main className="admin-main">{children}</main>

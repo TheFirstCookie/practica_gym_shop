@@ -5,22 +5,38 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, RotateCcw } from "lucide-react";
 import { getDashboard } from "@/lib/api/admin";
-import type { Dashboard, DashboardDays } from "@/lib/api/types";
+import type { Dashboard, DashboardRange } from "@/lib/api/types";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import { ProductImage } from "@/app/components/product-image";
 import { useAdminApi } from "../use-admin-api";
 import { OrderStatusBadge, orderNumber } from "./order-display";
 import { RevenueChart } from "./revenue-chart";
 
-const RANGES: { days: DashboardDays; label: string }[] = [
-  { days: 7, label: "7 days" },
-  { days: 30, label: "30 days" },
-  { days: 90, label: "90 days" }
+const RANGES: { range: DashboardRange; label: string }[] = [
+  { range: 7, label: "7 days" },
+  { range: 30, label: "30 days" },
+  { range: 90, label: "90 days" },
+  { range: "all", label: "All time" }
 ];
-const DEFAULT_DAYS: DashboardDays = 30;
+const DEFAULT_RANGE: DashboardRange = 30;
 
-function readDays(value: string | null): DashboardDays {
-  return RANGES.find((range) => String(range.days) === value)?.days ?? DEFAULT_DAYS;
+function readRange(value: string | null): DashboardRange {
+  return RANGES.find((option) => String(option.range) === value)?.range ?? DEFAULT_RANGE;
+}
+
+const dayFormat = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC"
+});
+
+/** "2026-08-27" (a UTC day from the API) -> "Aug 27, 2026". */
+const formatDay = (date: string) => dayFormat.format(new Date(`${date}T00:00:00Z`));
+
+/** "Last 30 days" / "All time", for headings and labels. */
+function periodLabel(dashboard: Dashboard) {
+  return dashboard.range === "all" ? "All time" : `Last ${dashboard.range} days`;
 }
 
 type Loaded = { key: string; dashboard: Dashboard } | { key: string; error: string };
@@ -30,28 +46,28 @@ export function DashboardView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { run } = useAdminApi();
-  const days = readDays(searchParams.get("days"));
+  const range = readRange(searchParams.get("days"));
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [reloadCount, setReloadCount] = useState(0);
-  const requestKey = `${days}|${reloadCount}`;
+  const requestKey = `${range}|${reloadCount}`;
 
   useEffect(() => {
     let current = true;
-    run((token) => getDashboard(token, days))
+    run((token) => getDashboard(token, range))
       .then((dashboard) => current && setLoaded({ key: requestKey, dashboard }))
       .catch((error: Error) => current && setLoaded({ key: requestKey, error: error.message }));
     return () => {
       current = false;
     };
-  }, [run, days, requestKey]);
+  }, [run, range, requestKey]);
 
   const loading = loaded?.key !== requestKey;
   // While another range loads, the previous numbers stay on screen (dimmed), not a blank page.
   const dashboard = loaded && "dashboard" in loaded ? loaded.dashboard : null;
   const error = loaded && "error" in loaded && !loading ? loaded.error : null;
 
-  function selectDays(next: DashboardDays) {
-    router.replace(next === DEFAULT_DAYS ? pathname : `${pathname}?days=${next}`, { scroll: false });
+  function selectRange(next: DashboardRange) {
+    router.replace(next === DEFAULT_RANGE ? pathname : `${pathname}?days=${next}`, { scroll: false });
   }
 
   return (
@@ -62,14 +78,14 @@ export function DashboardView() {
           <h1>Dashboard</h1>
         </div>
         <div className="admin-tabs" role="group" aria-label="Period">
-          {RANGES.map((range) => (
+          {RANGES.map((option) => (
             <button
               type="button"
-              key={range.days}
-              aria-pressed={days === range.days}
-              onClick={() => selectDays(range.days)}
+              key={option.range}
+              aria-pressed={range === option.range}
+              onClick={() => selectRange(option.range)}
             >
-              {range.label}
+              {option.label}
             </button>
           ))}
         </div>
@@ -94,11 +110,14 @@ export function DashboardView() {
           <section className="admin-panel admin-dashboard-chart" aria-labelledby="revenue-heading">
             <div className="admin-panel-heading">
               <h2 id="revenue-heading" className="admin-panel-title">
-                Revenue per day
+                Revenue per {dashboard.bucket}
               </h2>
-              <small>Paid orders, by the day they were paid (UTC)</small>
+              <small>
+                Paid orders, by the {dashboard.bucket} they were paid (UTC), since{" "}
+                {formatDay(dashboard.since)}
+              </small>
             </div>
-            <RevenueChart daily={dashboard.daily} currency={dashboard.currency} />
+            <RevenueChart series={dashboard.series} bucket={dashboard.bucket} currency={dashboard.currency} />
           </section>
 
           <div className="admin-dashboard-columns">
@@ -113,56 +132,62 @@ export function DashboardView() {
   );
 }
 
-/** "+12%" / "-8%" against the previous period, or nothing when there's no baseline. */
-function Change({ current, previous, days }: { current: number; previous: number; days: number }) {
+/** "+12%" / "-8%" against the previous period of the same length. */
+function Change({ current, previous, dashboard }: { current: number; previous: number | null; dashboard: Dashboard }) {
+  if (previous === null) {
+    return <small className="admin-stat-note">Since {formatDay(dashboard.since)}</small>;
+  }
   if (previous === 0) {
-    return <small className="admin-stat-note">No sales in the {days} days before</small>;
+    return <small className="admin-stat-note">Nothing in the {dashboard.days} days before</small>;
   }
   const change = Math.round(((current - previous) / previous) * 100);
   const up = change >= 0;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
   return (
     <small className="admin-stat-change" data-direction={up ? "up" : "down"}>
-      <Icon size={14} aria-hidden="true" />
+      <Icon size={13} aria-hidden="true" />
       <span>
         {up ? "+" : ""}
-        {change}% vs previous {days} days
+        {change}% vs previous {dashboard.days} days
       </span>
     </small>
   );
 }
 
 function DashboardStats({ dashboard }: { dashboard: Dashboard }) {
-  const { sales, orders, days, currency } = dashboard;
+  const { sales, orders, currency } = dashboard;
   const price = (cents: number) => formatPrice(cents, currency);
 
   return (
     <div className="admin-stats">
-      <div className="admin-stat admin-stat-hero">
-        <span className="admin-stat-label">Revenue, last {days} days</span>
+      <div className="admin-stat admin-stat-accent">
+        <span className="admin-stat-label">Revenue</span>
         <strong className="admin-stat-value">{price(sales.revenueCents)}</strong>
-        <Change current={sales.revenueCents} previous={sales.previousRevenueCents} days={days} />
+        <Change current={sales.revenueCents} previous={sales.previousRevenueCents} dashboard={dashboard} />
       </div>
       <div className="admin-stat">
         <span className="admin-stat-label">Paid orders</span>
         <strong className="admin-stat-value">{sales.orderCount}</strong>
-        <small className="admin-stat-note">Average {price(sales.averageOrderCents)}</small>
+        <Change current={sales.orderCount} previous={sales.previousOrderCount} dashboard={dashboard} />
+      </div>
+      <div className="admin-stat">
+        <span className="admin-stat-label">Average order</span>
+        <strong className="admin-stat-value">{price(sales.averageOrderCents)}</strong>
+        <small className="admin-stat-note">{periodLabel(dashboard)}</small>
       </div>
       <Link href="/admin/orders" className="admin-stat admin-stat-link" data-attention={orders.toShip > 0 || undefined}>
         <span className="admin-stat-label">To ship</span>
         <strong className="admin-stat-value">{orders.toShip}</strong>
         <small className="admin-stat-note">
           <span>{orders.toShip ? "Open the list" : "All caught up"}</span>
-          <ArrowRight size={14} aria-hidden="true" />
+          <ArrowRight size={13} aria-hidden="true" />
         </small>
       </Link>
-      <div className="admin-stat">
-        <span className="admin-stat-label">All-time revenue</span>
-        <strong className="admin-stat-value">{price(sales.allTimeRevenueCents)}</strong>
-        <small className="admin-stat-note">
-          {orders.awaitingPayment} {orders.awaitingPayment === 1 ? "checkout" : "checkouts"} awaiting payment
-        </small>
-      </div>
+      <Link href="/admin/orders?status=pending" className="admin-stat admin-stat-link">
+        <span className="admin-stat-label">Awaiting payment</span>
+        <strong className="admin-stat-value">{orders.awaitingPayment}</strong>
+        <small className="admin-stat-note">Open checkouts on Stripe</small>
+      </Link>
     </div>
   );
 }
@@ -176,7 +201,7 @@ function TopProducts({ dashboard }: { dashboard: Dashboard }) {
         <h2 id="top-products-heading" className="admin-panel-title">
           Best sellers
         </h2>
-        <small>Units sold, last {dashboard.days} days</small>
+        <small>Units sold, {periodLabel(dashboard).toLowerCase()}</small>
       </div>
       {dashboard.topProducts.length === 0 ? (
         <p className="admin-hint">No sales in this period yet.</p>

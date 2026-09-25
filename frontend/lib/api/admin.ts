@@ -6,7 +6,7 @@ import type {
   AdminOrderList,
   AdminProduct,
   Dashboard,
-  DashboardDays,
+  DashboardRange,
   DataEnvelope,
   OrderStatus,
   ProductList,
@@ -191,12 +191,12 @@ export async function restockOrder(token: string, id: string): Promise<AdminOrde
   return data;
 }
 
-export async function getDashboard(token: string, days: DashboardDays, signal?: AbortSignal): Promise<Dashboard> {
+export async function getDashboard(token: string, range: DashboardRange, signal?: AbortSignal): Promise<Dashboard> {
   const { data } = await apiRequest<DataEnvelope<Dashboard>>("/admin/dashboard", {
     ...noStore,
     token,
     signal,
-    query: { days }
+    query: { days: range }
   });
   return data;
 }

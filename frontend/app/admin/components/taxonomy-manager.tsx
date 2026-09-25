@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type FormEvent } from "react";
-import { Check, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { Check, Pencil, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { ApiError } from "@/lib/api/client";
 import { useAdminApi } from "../use-admin-api";
 import { slugify } from "./product-form-values";
@@ -153,7 +153,12 @@ export function TaxonomyManager<T extends TaxonomyItem>({ config }: { config: Ta
     }
   }
 
-  const items = load.status === "ready" ? load.items : [];
+  const [filter, setFilter] = useState("");
+  const allItems = load.status === "ready" ? load.items : [];
+  const needle = filter.trim().toLowerCase();
+  const items = needle
+    ? allItems.filter((item) => item.name.toLowerCase().includes(needle) || item.slug.includes(needle))
+    : allItems;
 
   return (
     <section className="admin-section">
@@ -188,6 +193,25 @@ export function TaxonomyManager<T extends TaxonomyItem>({ config }: { config: Ta
           await afterChange(`Added "${created.name}".`);
         }}
       />
+
+      <div className="admin-toolbar">
+        <label className="admin-search">
+          <Search size={17} aria-hidden="true" />
+          <input
+            type="search"
+            placeholder={`Filter ${config.title.toLowerCase()} by name`}
+            aria-label={`Filter ${config.title.toLowerCase()}`}
+            value={filter}
+            maxLength={80}
+            onChange={(event) => setFilter(event.target.value)}
+          />
+        </label>
+        {load.status === "ready" && (
+          <span className="admin-toolbar-count">
+            {needle ? `${items.length} of ${allItems.length}` : `${allItems.length} total`}
+          </span>
+        )}
+      </div>
 
       {load.status === "error" ? (
         <div className="admin-card admin-inline-card">
@@ -301,7 +325,10 @@ export function TaxonomyManager<T extends TaxonomyItem>({ config }: { config: Ta
             </tbody>
           </table>
           {load.status === "loading" && <p className="admin-empty">Loading…</p>}
-          {load.status === "ready" && items.length === 0 && (
+          {load.status === "ready" && allItems.length > 0 && items.length === 0 && (
+            <p className="admin-empty">Nothing matches &ldquo;{filter.trim()}&rdquo;.</p>
+          )}
+          {load.status === "ready" && allItems.length === 0 && (
             <p className="admin-empty">Nothing here yet. Add the first one above.</p>
           )}
         </div>
