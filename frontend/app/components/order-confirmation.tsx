@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, CircleCheck, Clock, RotateCcw, ShoppingBag } from "lucide-react";
+import { ArrowRight, CircleCheck, Clock, Package, RotateCcw, ShoppingBag } from "lucide-react";
 import { getCheckoutOrder } from "@/lib/api/checkout";
 import { ApiError } from "@/lib/api/client";
 import type { CheckoutOrder } from "@/lib/api/types";
 import { formatPrice } from "@/lib/format";
 import { useCart } from "./cart-provider";
+import { useCustomerSession } from "./customer-session";
 
 // Stripe usually confirms within seconds; after ~30 s we stop and offer a manual refresh.
 const POLL_INTERVAL_MS = 2000;
@@ -22,6 +23,7 @@ type State =
 /** Watches an order until Stripe's payment is confirmed, then shows the receipt. */
 export function OrderConfirmation({ sessionId }: { sessionId: string }) {
   const { clear } = useCart();
+  const { customer } = useCustomerSession();
   const [state, setState] = useState<State>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
   const cartCleared = useRef(false);
@@ -187,10 +189,19 @@ export function OrderConfirmation({ sessionId }: { sessionId: string }) {
         </div>
       </div>
 
-      <Link href="/#catalog" className="button primary">
-        <span>Keep shopping</span>
-        <ArrowRight size={18} />
-      </Link>
+      <div className="order-confirmation-actions">
+        <Link href="/#catalog" className="button primary">
+          <span>Keep shopping</span>
+          <ArrowRight size={18} />
+        </Link>
+        {/* Orders placed while signed in are saved to the account (guest ones aren't). */}
+        {customer && (
+          <Link href="/account" className="button secondary">
+            <Package size={18} />
+            <span>Your orders</span>
+          </Link>
+        )}
+      </div>
     </section>
   );
 }

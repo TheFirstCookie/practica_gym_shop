@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { CreditCard, LockKeyhole } from "lucide-react";
+import { CreditCard, LockKeyhole, UserRound } from "lucide-react";
 import { createCheckoutSession, toCartProblem, type CartProblem } from "@/lib/api/checkout";
 import { ApiError } from "@/lib/api/client";
 import { formatPrice } from "@/lib/format";
 import { rememberPendingCheckout } from "@/lib/pending-checkout";
 import { useCart } from "./cart-provider";
+import { signInHref, useCustomerSession } from "./customer-session";
 
 export type CheckoutLine = {
   slug: string;
@@ -50,6 +52,7 @@ export function CheckoutPanel({
   onCartAdjusted
 }: CheckoutPanelProps) {
   const { setQuantity, remove } = useCart();
+  const { state: session, customer, getToken } = useCustomerSession();
   const [status, setStatus] = useState<Status>({ state: "idle" });
 
   function fixCart(problem: CartProblem): string {
@@ -70,12 +73,15 @@ export function CheckoutPanel({
     setStatus({ state: "redirecting" });
 
     try {
-      const session = await createCheckoutSession(
-        lines.map(({ slug, quantity }) => ({ slug, quantity }))
+      // Signed in, the order is saved to the account; otherwise it's a guest checkout.
+      const token = (await getToken()) ?? undefined;
+      const checkout = await createCheckoutSession(
+        lines.map(({ slug, quantity }) => ({ slug, quantity })),
+        token
       );
-      rememberPendingCheckout(session.sessionId);
+      rememberPendingCheckout(checkout.sessionId);
       // Full navigation to Stripe's page; the button stays in "redirecting" meanwhile.
-      window.location.assign(session.url);
+      window.location.assign(checkout.url);
     } catch (error) {
       const problem = toCartProblem(error);
       if (problem) {
@@ -103,6 +109,25 @@ export function CheckoutPanel({
         <CreditCard size={18} />
         <span>{busy ? "Opening secure checkout…" : "Checkout"}</span>
       </button>
+
+      {customer ? (
+        <p className="checkout-account-note">
+          <UserRound size={14} aria-hidden="true" />
+          <span>
+            Signed in as <b className="checkout-account-email">{customer.email}</b>. This order will be saved to your account.
+          </span>
+        </p>
+      ) : (
+        session.status === "signed-out" && (
+          <p className="checkout-account-note">
+            <UserRound size={14} aria-hidden="true" />
+            <span>
+              Checking out as a guest. <Link href={signInHref("/cart")}>Sign in</Link> to track this order in
+              your account.
+            </span>
+          </p>
+        )
+      )}
 
       {status.state === "error" && (
         <p className="checkout-note checkout-note-error" role="alert">

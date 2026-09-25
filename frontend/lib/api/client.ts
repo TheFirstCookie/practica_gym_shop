@@ -3,7 +3,7 @@ import { API_BASE_URL } from "./config";
 type QueryValue = string | number | boolean | string[] | null | undefined;
 
 export type ApiRequestOptions = {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   query?: Record<string, QueryValue>;
   body?: unknown;
   /** Supabase access token, for /admin routes. */

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Dumbbell } from "lucide-react";
 import { getNavCategories } from "@/lib/api/catalog";
+import { AccountLink } from "./account-link";
 import { CategoriesMenu } from "./categories-menu";
 import { CartLink } from "./cart-link";
 import { SearchBar } from "./search-bar";
@@ -26,6 +27,7 @@ export async function SiteHeader({ compact = false, query }: SiteHeaderProps) {
       <SearchBar initialQuery={query} />
       <nav className="main-nav" aria-label="Primary navigation">
         <CategoriesMenu categories={categories} />
+        <AccountLink />
         <CartLink />
       </nav>
     </header>

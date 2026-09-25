@@ -31,3 +31,14 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
 export function formatDateTime(iso: string) {
   return dateTimeFormatter.format(new Date(iso));
 }
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric"
+});
+
+/** "2026-09-25T14:39:32Z" -> "Sep 25, 2026" in the viewer's time zone. */
+export function formatDate(iso: string) {
+  return dateFormatter.format(new Date(iso));
+}

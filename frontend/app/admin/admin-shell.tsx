@@ -15,7 +15,8 @@ const NAV = [
   { href: "/admin/orders", label: "Orders", match: (path: string) => path.startsWith("/admin/orders") },
   { href: "/admin/products", label: "Products", match: (path: string) => path.startsWith("/admin/products") },
   { href: "/admin/categories", label: "Categories", match: (path: string) => path.startsWith("/admin/categories") },
-  { href: "/admin/brands", label: "Brands", match: (path: string) => path.startsWith("/admin/brands") }
+  { href: "/admin/brands", label: "Brands", match: (path: string) => path.startsWith("/admin/brands") },
+  { href: "/admin/reviews", label: "Reviews", match: (path: string) => path.startsWith("/admin/reviews") }
 ];
 
 /**

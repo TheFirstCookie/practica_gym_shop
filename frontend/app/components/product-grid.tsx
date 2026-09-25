@@ -3,6 +3,7 @@ import type { ProductSummary } from "@/lib/api/types";
 import { formatPrice } from "@/lib/format";
 import { ProductImage } from "./product-image";
 import { TagBadge } from "./tag-badge";
+import { WishlistButton } from "./wishlist-button";
 
 type ProductGridProps = {
   products: ProductSummary[];
@@ -26,23 +27,26 @@ export function ProductGrid({ products, featureFirst = false, clearHref }: Produ
   return (
     <div className="product-grid">
       {products.map((product, index) => (
-        <Link
-          href={`/product/${product.slug}`}
+        // The heart sits beside the link, not inside it: a button can't live in a link.
+        <article
           className={featureFirst && index === 0 ? "product-card featured-card" : "product-card"}
           key={product.id}
         >
-          <div className="product-image">
-            <ProductImage src={product.image} alt={product.name} />
-            {product.tag && <TagBadge tag={product.tag} className="product-tag" />}
-          </div>
-          <div className="product-info">
-            <div>
-              <small>{product.brand.name}</small>
-              <h3>{product.name}</h3>
+          <Link href={`/product/${product.slug}`} className="product-card-link">
+            <div className="product-image">
+              <ProductImage src={product.image} alt={product.name} />
+              {product.tag && <TagBadge tag={product.tag} className="product-tag" />}
             </div>
-            <strong>{formatPrice(product.priceCents, product.currency)}</strong>
-          </div>
-        </Link>
+            <div className="product-info">
+              <div>
+                <small>{product.brand.name}</small>
+                <h3>{product.name}</h3>
+              </div>
+              <strong>{formatPrice(product.priceCents, product.currency)}</strong>
+            </div>
+          </Link>
+          <WishlistButton slug={product.slug} name={product.name} />
+        </article>
       ))}
     </div>
   );

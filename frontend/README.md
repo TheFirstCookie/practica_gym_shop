@@ -2,7 +2,8 @@
 
 Next.js 16 (App Router, React 19) frontend for **ForgeFit Supply**, a portfolio gym-equipment
 shop. It reads the catalog from the ForgeFit API (Express on Render, Supabase Postgres) and
-includes an admin area for managing products. Deployed on Vercel.
+includes shopper accounts (orders, wishlist, reviews) and an admin area for running the shop.
+Deployed on Vercel.
 
 ## Setup
 
@@ -15,13 +16,14 @@ npm run dev                        # http://localhost:3000
 | Variable                               | Used by        | Notes                                                        |
 | -------------------------------------- | -------------- | ------------------------------------------------------------ |
 | `NEXT_PUBLIC_API_URL`                  | whole site     | API base URL, no trailing slash (`http://localhost:4000` locally) |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `/admin` only  | Supabase project URL                                         |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `/admin` only  | The **publishable** (or legacy anon) key, never the secret one |
+| `NEXT_PUBLIC_SUPABASE_URL`             | accounts, `/admin` | Supabase project URL                                     |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | accounts, `/admin` | The **publishable** (or legacy anon) key, never the secret one |
 | `NEXT_PUBLIC_SITE_URL`                 | SEO (optional) | Public origin for canonical links and the sitemap; on Vercel the production domain is used automatically |
 
 On Vercel, set the same variables under **Settings > Environment Variables** (type *Config*,
 all environments) and redeploy. `NEXT_PUBLIC_` values end up in the browser bundle, which is
-fine for these three and never fine for a secret.
+fine for these and never fine for a secret. Without the two Supabase values the shop still
+works for guests: the sign-in button and wishlist hearts are simply hidden.
 
 | Script              | What it does              |
 | ------------------- | ------------------------- |
@@ -39,7 +41,7 @@ app/
 ├── sitemap.ts  robots.ts   # /sitemap.xml (home, categories, products) and /robots.txt
 ├── opengraph-image.tsx     # share preview image for links to the shop
 ├── (shop)/                 # storefront (route group: doesn't appear in URLs)
-│   ├── layout.tsx          # adds the footer
+│   ├── layout.tsx          # shopper session + wishlist providers, footer
 │   ├── error.tsx           # "the shop didn't load" + retry
 │   ├── not-found.tsx       # unknown product/category
 │   ├── (browse)/           # route group for the catalog listings
@@ -48,25 +50,36 @@ app/
 │   │   └── search/
 │   ├── category/[slug]/  product/[slug]/  cart/
 │   ├── checkout/success/   # order confirmation after Stripe
-├── admin/                  # /admin: dashboard, orders, products, categories, brands
+│   └── account/            # shopper accounts (noindex, account.css)
+│       ├── sign-in/        # sign in / create account, returns to ?next=
+│       ├── page.tsx        # order history;  orders/[id]/ order detail
+│       ├── wishlist/  settings/
+│       └── components/     # auth form, account shell (gate + tabs), order/wishlist views
+├── admin/                  # /admin: dashboard, orders, products, categories, brands, reviews
 │   ├── layout.tsx          # session provider + guard, admin.css
 │   ├── admin-session.tsx   # Supabase session, admin check via the API
 │   ├── admin-shell.tsx     # redirects to /admin/login, admin header
 │   ├── actions.ts          # server action: refresh the storefront cache after edits
 │   ├── page.tsx            # dashboard (sales, revenue chart, best sellers, low stock)
 │   ├── login/  products/  products/new/  products/[id]/  orders/  orders/[id]/
-│   ├── categories/  brands/
+│   ├── categories/  brands/  reviews/
 │   └── components/         # tables, editors, dashboard + chart, image upload (resizes first)
 ├── components/             # storefront components
+│   ├── customer-session.tsx  wishlist-provider.tsx  # shopper sign-in and saved products
+│   ├── account-link.tsx  wishlist-button.tsx        # header menu, heart buttons
+│   └── reviews/            # stars, review list and form, rating refresh action
 └── fonts/                  # self-hosted Anton + Archivo
 lib/
 ├── api/                    # the only code that calls the backend
 │   ├── client.ts           # fetch wrapper, ApiError
 │   ├── catalog.ts          # public reads (cached 60 s, tag "catalog")
 │   ├── checkout.ts         # start / look up / abandon a Stripe checkout
+│   ├── account.ts          # the shopper's orders and wishlist (token required)
+│   ├── reviews.ts          # product reviews and rating summaries
 │   ├── admin.ts            # admin calls (token required, never cached)
 │   └── types.ts            # API response shapes
-├── supabase/client.ts      # browser client for admin sign-in and uploads
+├── supabase/client.ts      # browser clients: admin (sign-in, uploads) and shopper, kept apart
+├── orders.ts               # order number and address formatting (account + admin)
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
 ├── pending-checkout.ts     # remembers the open Stripe session for the "back" link
 ├── filters.ts              # URL params -> filters (?brand, ?sort, ?page, ?q)
@@ -91,6 +104,14 @@ lib/
   through Stripe's "back" link releases the reserved stock right away. If stock ran out
   meanwhile, the cart is corrected and the shopper is told what changed. Test card:
   `4242 4242 4242 4242`.
+- **Accounts** use Supabase Auth in the browser (email and password). The shopper's session
+  is stored separately from the admin's, so signing in to one doesn't affect the other.
+  Their access token goes to the API, which checks it on every request; orders are matched
+  to accounts by user id, never by email. Checking out while signed in saves the order to
+  the account and pre-fills the email on Stripe; guest checkout works as before.
+- **Reviews**: one per shopper per product, editable. A *Verified purchase* badge shows when
+  they paid for it. The list is always fresh; the star summary under the product title is
+  cached like the catalog and refreshed by a server action when a review changes.
 - **Product photos** upload from the browser straight to Supabase Storage using a one-time
   signed URL from the API.
 
@@ -98,13 +119,30 @@ lib/
 
 - Every page has a title and description; product and category pages add a canonical URL
   and share-preview data (product photo, or the generated `opengraph-image`). Product pages
-  also include schema.org `Product` data (price, stock) for rich search results.
+  also include schema.org `Product` data (price, stock, star rating) for rich search results.
 - Unknown products and categories answer with a real **404**. That's why the loading
   skeleton lives in `(browse)/` and not around product and category pages: once a page
   starts streaming its skeleton, the status code is already sent as 200.
 - `/sitemap.xml` lists the home page, categories and every product (with photos);
-  `/robots.txt` points to it and keeps crawlers out of `/admin`, `/cart` and `/checkout`.
+  `/robots.txt` points to it and keeps crawlers out of `/admin`, `/account`, `/cart` and `/checkout`.
   Search results and the cart carry `noindex`.
+
+## Shopper accounts
+
+The header's **Sign in** button (or any wishlist heart) leads to `/account/sign-in`, which
+also creates accounts. Signed in, the header shows the shopper's name with a menu:
+
+- **Orders** (`/account`): paid, shipped and refunded orders with their status; each opens
+  its items, shipping address and progress, plus *Write a review* links.
+- **Wishlist** (`/account/wishlist`): products saved with the heart on product cards and
+  product pages, with live prices and stock.
+- **Settings**: change name (shown on new reviews as "Ana B.") or password, sign out.
+
+Supabase Auth settings this needs (**Authentication > Sign In / Providers > Email**): sign-ups
+allowed. For the demo, turn **Confirm email** off; Supabase's built-in mailer only delivers
+to your own team's addresses (a couple per hour), so real shoppers wouldn't get the link.
+With a custom SMTP server (e.g. Resend) it can stay on, and the form then says "check your
+inbox".
 
 ## Admin
 
@@ -132,3 +170,5 @@ and the API rejects their requests regardless of what the UI shows.
   1600px, WebP), so a 10 MB phone photo becomes a few hundred KB.
 - **Categories** and **Brands**: filter, add, rename, change a category's tile colour and
   order, and delete ones no product uses. Changes show on the storefront right away.
+- **Reviews** (`/admin/reviews`): every review, newest first, with its product and author;
+  delete ones that break the rules.

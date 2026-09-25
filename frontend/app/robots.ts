@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Private or per-visitor pages. Search results stay crawlable but carry noindex.
-      disallow: ["/admin", "/cart", "/checkout"]
+      disallow: ["/admin", "/account", "/cart", "/checkout"]
     },
     sitemap: `${SITE_URL}/sitemap.xml`
   };

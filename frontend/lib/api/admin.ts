@@ -1,6 +1,7 @@
 import { apiRequest } from "./client";
 import type {
   AdminBrand,
+  AdminReview,
   AdminCategory,
   AdminOrder,
   AdminOrderList,
@@ -9,6 +10,7 @@ import type {
   DashboardRange,
   DataEnvelope,
   OrderStatus,
+  Pagination,
   ProductList,
   ProductSort
 } from "./types";
@@ -271,4 +273,15 @@ export async function updateBrand(token: string, id: string, input: Partial<Bran
 
 export function deleteBrand(token: string, id: string): Promise<void> {
   return apiRequest<void>(`/admin/brands/${id}`, { method: "DELETE", token });
+}
+
+export type AdminReviewList = { data: AdminReview[]; meta: { pagination: Pagination } };
+
+/** Every review in the shop, newest first, for moderation. */
+export function listAdminReviews(token: string, page = 1): Promise<AdminReviewList> {
+  return apiRequest<AdminReviewList>("/admin/reviews", { ...noStore, token, query: { page, pageSize: 25 } });
+}
+
+export function deleteAdminReview(token: string, id: string): Promise<void> {
+  return apiRequest<void>(`/admin/reviews/${id}`, { method: "DELETE", token });
 }

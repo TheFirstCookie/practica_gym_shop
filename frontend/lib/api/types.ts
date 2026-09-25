@@ -222,3 +222,58 @@ export type Dashboard = {
   }[];
   lowStockThreshold: number;
 };
+
+/** One of the signed-in shopper's own orders. */
+export type CustomerOrder = {
+  id: string;
+  status: OrderStatus;
+  currency: string;
+  subtotalCents: number;
+  totalCents: number;
+  itemCount: number;
+  createdAt: string;
+  paidAt: string | null;
+  fulfilledAt: string | null;
+  refundedAt: string | null;
+  shippingAddress: ShippingAddress | null;
+  items: {
+    name: string;
+    quantity: number;
+    unitPriceCents: number;
+    lineTotalCents: number;
+    /** The product today, for a link and photo; null once it's been removed from the shop. */
+    product: { slug: string; image: string | null } | null;
+  }[];
+};
+
+export type WishlistItem = ProductSummary & { addedAt: string };
+
+export type Review = {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  /** "Ana B.", never the email. */
+  authorName: string;
+  verifiedPurchase: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RatingSummary = {
+  count: number;
+  /** One decimal; null with no reviews. */
+  average: number | null;
+  /** Counts of 1- to 5-star reviews, in that order. */
+  distribution: [number, number, number, number, number];
+};
+
+export type ReviewList = {
+  data: Review[];
+  meta: { pagination: Pagination; summary: RatingSummary };
+};
+
+export type AdminReview = Review & {
+  userId: string;
+  product: { id: string; name: string; slug: string } | null;
+};

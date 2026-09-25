@@ -13,12 +13,14 @@ export type CartProblem =
 
 /**
  * Reserves the cart's stock and returns the Stripe payment page to send the shopper to.
- * Prices are never sent: the API reads them from the database.
+ * Prices are never sent: the API reads them from the database. With a signed-in shopper's
+ * token the order is saved to their account and Stripe pre-fills their email.
  */
-export async function createCheckoutSession(items: CheckoutItem[]): Promise<CheckoutSession> {
+export async function createCheckoutSession(items: CheckoutItem[], token?: string): Promise<CheckoutSession> {
   const { data } = await apiRequest<DataEnvelope<CheckoutSession>>("/checkout/sessions", {
     method: "POST",
-    body: { items }
+    body: { items },
+    token
   });
   return data;
 }

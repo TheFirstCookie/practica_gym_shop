@@ -131,6 +131,7 @@
 }
 
 .admin-account-email {
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1184,6 +1185,32 @@
   cursor: not-allowed;
 }
 
+/* Reviews */
+
+.admin-review-cell {
+  display: grid;
+  gap: 5px;
+  max-width: 520px;
+}
+
+.admin-review-cell > span:not(.stars) {
+  color: var(--body-text);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.admin-review-cell small {
+  color: var(--muted);
+}
+
+.admin-order-customer .admin-review-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--green);
+  font-weight: 800;
+}
+
 /* Categories and brands */
 
 .admin-taxonomy-form {
@@ -1627,6 +1654,25 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The nav doesn't fit beside the search and account any more: it gets its own row. */
+@media (max-width: 1240px) {
+  .admin-header {
+    flex-wrap: wrap;
+    gap: 12px 20px;
+  }
+
+  .admin-header-tools {
+    margin-left: auto;
+  }
+
+  .admin-nav {
+    order: 3;
+    flex-basis: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 1100px) {
   .admin-taxonomy-form:has(.admin-accent-field) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1659,18 +1705,6 @@
 }
 
 @media (max-width: 640px) {
-  .admin-header {
-    flex-wrap: wrap;
-    gap: 12px 20px;
-  }
-
-  .admin-nav {
-    order: 3;
-    flex-basis: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
   /* Two tiles side by side; revenue takes the full width. */
   .admin-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1684,11 +1718,7 @@
     font-size: 1.25rem;
   }
 
-  /* The header keeps just the icons; the nav gets its own scrolling row. */
-  .admin-header-tools {
-    margin-left: auto;
-  }
-
+  /* The header keeps just the icons. */
   .admin-search-trigger {
     width: 38px;
     padding: 0;

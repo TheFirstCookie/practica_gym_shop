@@ -36,7 +36,8 @@ const PAGES: Result[] = [
   { key: "p-products", group: "Go to", title: "Products", href: "/admin/products" },
   { key: "p-new-product", group: "Go to", title: "New product", href: "/admin/products/new" },
   { key: "p-categories", group: "Go to", title: "Categories", href: "/admin/categories" },
-  { key: "p-brands", group: "Go to", title: "Brands", href: "/admin/brands" }
+  { key: "p-brands", group: "Go to", title: "Brands", href: "/admin/brands" },
+  { key: "p-reviews", group: "Go to", title: "Reviews", href: "/admin/reviews" }
 ];
 
 const SEARCH_DEBOUNCE_MS = 200;

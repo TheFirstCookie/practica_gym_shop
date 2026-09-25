@@ -1,0 +1,542 @@
+/* Shopper account pages: sign-in, orders, wishlist and settings. Loaded by account/layout.tsx. */
+
+.account-page {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  min-height: 60vh;
+  padding: clamp(28px, 5vw, 64px) clamp(18px, 4vw, 54px);
+}
+
+.account-page-narrow {
+  justify-items: center;
+}
+
+.account-heading h1 {
+  margin: 0;
+  font-size: clamp(2.6rem, 6vw, 4.4rem);
+}
+
+.account-heading .eyebrow {
+  margin-bottom: 10px;
+}
+
+.account-muted {
+  margin: 0;
+  color: var(--body-text);
+  line-height: 1.55;
+}
+
+.account-muted strong {
+  color: var(--text);
+}
+
+/* Tabs */
+
+.account-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+}
+
+.account-tabs a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  color: var(--muted);
+  font-weight: 800;
+  white-space: nowrap;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.account-tabs a:hover {
+  color: var(--text);
+}
+
+.account-tabs a[aria-current="page"] {
+  border-bottom-color: var(--brand);
+  color: var(--text);
+}
+
+.account-body {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* Cards and forms */
+
+.account-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: clamp(18px, 3vw, 26px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.account-card h2,
+.account-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+}
+
+.account-form {
+  display: grid;
+  gap: 14px;
+}
+
+.account-field {
+  display: grid;
+  gap: 7px;
+}
+
+.account-field > span {
+  color: var(--nav-text);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.account-field input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--text);
+  font: inherit;
+  transition: border-color 120ms ease;
+}
+
+.account-field input:focus {
+  border-color: var(--brand);
+  outline: none;
+}
+
+.account-field small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.account-error,
+.account-success {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.account-error {
+  background: rgba(255, 77, 61, 0.1);
+  border-left: 3px solid var(--hot);
+  color: var(--text);
+}
+
+.account-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(66, 196, 159, 0.1);
+  border-left: 3px solid var(--green);
+  color: var(--green);
+}
+
+.account-card .button,
+.account-empty .button {
+  justify-self: start;
+}
+
+/* Sign in / create account */
+
+.auth-card {
+  width: min(440px, 100%);
+  border-top: 4px solid var(--brand);
+}
+
+.auth-card h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 7vw, 3.4rem);
+}
+
+.auth-card .eyebrow {
+  margin: 0;
+}
+
+.auth-card .button[type="submit"] {
+  justify-self: stretch;
+}
+
+.auth-card-icon {
+  color: var(--brand);
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  background: var(--page);
+  border: 1px solid var(--line);
+}
+
+.auth-tabs button {
+  min-height: 38px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.auth-tabs button[aria-pressed="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.auth-guest {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.auth-guest a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-guest a:hover {
+  color: var(--brand);
+}
+
+/* Empty and error states */
+
+.account-empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: clamp(24px, 4vw, 40px);
+  background: var(--surface);
+  border: 1px dashed var(--line);
+}
+
+.account-empty > svg {
+  color: var(--brand);
+}
+
+.account-empty h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.account-count {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Status badge */
+
+.account-badge {
+  --tone: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  border-radius: 999px;
+  color: var(--tone);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.account-badge[data-status="paid"] {
+  --tone: var(--gold);
+}
+
+.account-badge[data-status="fulfilled"] {
+  --tone: var(--green);
+}
+
+.account-badge[data-status="refunded"] {
+  --tone: var(--calm);
+}
+
+/* Order list */
+
+.account-orders {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-order {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 18px;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: border-color 120ms ease;
+}
+
+.account-order:hover {
+  border-color: var(--brand-line);
+}
+
+.account-order-main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.account-order-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-order-main small {
+  color: var(--muted);
+}
+
+.account-order-thumbs {
+  display: flex;
+  gap: 6px;
+}
+
+.account-thumb {
+  position: relative;
+  display: grid;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  overflow: hidden;
+  background: var(--soft-fill);
+  border: 1px solid var(--line);
+}
+
+.account-thumb img,
+.account-thumb .image-placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-thumb-more {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.account-order-total {
+  font-size: 1.1rem;
+}
+
+.account-order-chevron {
+  color: var(--muted);
+}
+
+/* Order detail */
+
+.account-order-detail {
+  display: grid;
+  gap: 18px;
+}
+
+.account-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.account-back:hover {
+  color: var(--brand);
+}
+
+.account-order-detail-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-order-detail-heading h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.account-order-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.account-order-side {
+  display: grid;
+  gap: 18px;
+}
+
+.account-items {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-items li {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.account-items .account-thumb {
+  width: 56px;
+  height: 56px;
+}
+
+.account-item-name {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-weight: 800;
+}
+
+.account-item-name a:hover {
+  color: var(--brand);
+}
+
+.account-item-name small {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.account-review-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-self: start;
+  color: var(--brand);
+  font-size: 0.82rem;
+}
+
+.account-totals {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.account-totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--body-text);
+}
+
+.account-totals dd {
+  margin: 0;
+}
+
+.account-totals .account-total {
+  padding-top: 8px;
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.account-timeline {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0 0 0 18px;
+  border-left: 2px solid var(--line);
+  list-style: none;
+}
+
+.account-timeline li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+}
+
+/* A dot on the line for each step. */
+.account-timeline li::before {
+  position: absolute;
+  top: 5px;
+  left: -24px;
+  width: 10px;
+  height: 10px;
+  background: var(--brand);
+  border-radius: 999px;
+  content: "";
+}
+
+.account-timeline small {
+  color: var(--muted);
+}
+
+.account-address {
+  display: grid;
+  gap: 3px;
+  color: var(--body-text);
+  font-style: normal;
+  line-height: 1.5;
+}
+
+/* Settings */
+
+.account-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: start;
+  gap: 18px;
+}
+
+@media (max-width: 960px) {
+  .account-order-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .account-order {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .account-order-thumbs {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .account-order-chevron {
+    display: none;
+  }
+}
+
+/* The placeholder's dumbbell is sized for product cards; shrink it for thumbnails. */
+.account-thumb .image-placeholder svg {
+  width: 22px;
+  height: 22px;
+}

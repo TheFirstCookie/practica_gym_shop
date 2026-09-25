@@ -9,9 +9,11 @@ type AddToCartProps = {
   slug: string;
   name: string;
   stock: number;
+  /** More buttons for the same row (the wishlist heart). */
+  children?: React.ReactNode;
 };
 
-export function AddToCart({ slug, name, stock }: AddToCartProps) {
+export function AddToCart({ slug, name, stock, children }: AddToCartProps) {
   const { lines, add } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
@@ -77,6 +79,7 @@ export function AddToCart({ slug, name, stock }: AddToCartProps) {
           {justAdded ? <Check size={18} strokeWidth={2.8} /> : <ShoppingBag size={18} />}
           <span>{label}</span>
         </button>
+        {children}
       </div>
       {inCart > 0 && (
         <p className="cart-note">
