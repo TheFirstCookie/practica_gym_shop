@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProduct, getRelatedProducts } from "@/lib/api/catalog";
+import type { Product } from "@/lib/api/types";
 import { formatPrice } from "@/lib/format";
+import { SITE_NAME, SITE_URL, toMetaDescription } from "@/lib/site";
 import { SiteHeader } from "@/app/components/site-header";
 import { AddToCart } from "@/app/components/add-to-cart";
 import { ProductImage } from "@/app/components/product-image";
@@ -14,7 +16,46 @@ type ProductPageProps = {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const product = await getProduct((await params).slug);
-  return product ? { title: product.name, description: product.description } : {};
+  if (!product) return {};
+
+  const description = toMetaDescription(
+    product.description || `${product.name} by ${product.brand.name}, from ${SITE_NAME}.`
+  );
+  const path = `/product/${product.slug}`;
+
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      title: product.name,
+      description,
+      url: path,
+      // Falls back to the site-wide image (app/opengraph-image.tsx) when there's no photo.
+      images: product.image ? [{ url: product.image, alt: product.name }] : undefined
+    }
+  };
+}
+
+/** schema.org Product data, so search results can show the price and stock. */
+function toJsonLd(product: Product) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description || undefined,
+    image: product.image ?? undefined,
+    sku: product.slug,
+    category: product.category.name,
+    brand: { "@type": "Brand", name: product.brand.name },
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/product/${product.slug}`,
+      price: (product.priceCents / 100).toFixed(2),
+      priceCurrency: product.currency.toUpperCase(),
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
@@ -30,6 +71,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        // "<" is escaped so text from the database can't close the script tag.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(toJsonLd(product)).replace(/</g, "\\u003c") }}
+      />
       <SiteHeader compact />
 
       <section className="product-detail">

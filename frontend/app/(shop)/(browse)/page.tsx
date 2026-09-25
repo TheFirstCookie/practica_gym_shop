@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Zap } from "lucide-react";
 import { getCategories, listProducts } from "@/lib/api/catalog";
@@ -18,6 +19,11 @@ import { FaqSection } from "@/app/components/faq-section";
 import { MarqueeStrip } from "@/app/components/marquee-strip";
 import { PerksBand } from "@/app/components/perks-band";
 import { TagBadge } from "@/app/components/tag-badge";
+
+export const metadata: Metadata = {
+  // Filters and pages (?brand=, ?sort=, ?page=) are variants of the home page.
+  alternates: { canonical: "/" }
+};
 
 type HomeProps = {
   searchParams: Promise<SearchParams>;

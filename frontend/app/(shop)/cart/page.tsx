@@ -4,7 +4,8 @@ import { SiteHeader } from "@/app/components/site-header";
 import { CartView } from "@/app/components/cart-view";
 
 export const metadata: Metadata = {
-  title: "Cart"
+  title: "Cart",
+  robots: { index: false }
 };
 
 type CartPageProps = {

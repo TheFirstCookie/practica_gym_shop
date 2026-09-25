@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategory, listProducts } from "@/lib/api/catalog";
 import { PAGE_SIZE, parseFilters, parsePage, type SearchParams } from "@/lib/filters";
+import { SITE_NAME } from "@/lib/site";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
@@ -16,7 +17,20 @@ export async function generateMetadata({
   params
 }: Pick<CategoryPageProps, "params">): Promise<Metadata> {
   const category = await getCategory((await params).slug);
-  return category ? { title: category.name } : {};
+  if (!category) return {};
+
+  const description = `Shop ${category.count} ${category.name.toLowerCase()} ${
+    category.count === 1 ? "product" : "products"
+  } at ${SITE_NAME}. Ships within 15 days, 30-day returns.`;
+  const path = `/category/${category.slug}`;
+
+  return {
+    title: category.name,
+    description,
+    // Filtered and sorted variants (?brand=, ?sort=, ?page=) all point search engines here.
+    alternates: { canonical: path },
+    openGraph: { title: category.name, description, url: path }
+  };
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {

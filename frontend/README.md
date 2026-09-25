@@ -17,6 +17,7 @@ npm run dev                        # http://localhost:3000
 | `NEXT_PUBLIC_API_URL`                  | whole site     | API base URL, no trailing slash (`http://localhost:4000` locally) |
 | `NEXT_PUBLIC_SUPABASE_URL`             | `/admin` only  | Supabase project URL                                         |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `/admin` only  | The **publishable** (or legacy anon) key, never the secret one |
+| `NEXT_PUBLIC_SITE_URL`                 | SEO (optional) | Public origin for canonical links and the sitemap; on Vercel the production domain is used automatically |
 
 On Vercel, set the same variables under **Settings > Environment Variables** (type *Config*,
 all environments) and redeploy. `NEXT_PUBLIC_` values end up in the browser bundle, which is
@@ -33,15 +34,19 @@ fine for these three and never fine for a secret.
 
 ```
 app/
-├── layout.tsx              # <html>, fonts, cart provider; shared by shop and admin
+├── layout.tsx              # <html>, fonts, cart provider, site-wide SEO metadata
 ├── not-found.tsx           # 404 for URLs that match no route
+├── sitemap.ts  robots.ts   # /sitemap.xml (home, categories, products) and /robots.txt
+├── opengraph-image.tsx     # share preview image for links to the shop
 ├── (shop)/                 # storefront (route group: doesn't appear in URLs)
 │   ├── layout.tsx          # adds the footer
-│   ├── loading.tsx         # skeleton while the API answers (Render cold starts)
 │   ├── error.tsx           # "the shop didn't load" + retry
 │   ├── not-found.tsx       # unknown product/category
-│   ├── page.tsx            # home: hero, categories, filterable catalog
-│   ├── category/[slug]/  product/[slug]/  search/  cart/
+│   ├── (browse)/           # route group for the catalog listings
+│   │   ├── loading.tsx     # skeleton while the API answers (Render cold starts)
+│   │   ├── page.tsx        # home: hero, categories, filterable catalog
+│   │   └── search/
+│   ├── category/[slug]/  product/[slug]/  cart/
 │   ├── checkout/success/   # order confirmation after Stripe
 ├── admin/                  # /admin: sign-in, products and orders
 │   ├── layout.tsx          # session provider + guard, admin.css
@@ -63,6 +68,7 @@ lib/
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
 ├── pending-checkout.ts     # remembers the open Stripe session for the "back" link
 ├── filters.ts              # URL params -> filters (?brand, ?sort, ?page, ?q)
+├── site.ts                 # site name, URL and description for SEO
 ├── format.ts               # prices in cents -> "$29.99"
 └── store-info.ts           # shipping/returns/warranty copy
 ```
@@ -85,6 +91,18 @@ lib/
   `4242 4242 4242 4242`.
 - **Product photos** upload from the browser straight to Supabase Storage using a one-time
   signed URL from the API.
+
+## SEO
+
+- Every page has a title and description; product and category pages add a canonical URL
+  and share-preview data (product photo, or the generated `opengraph-image`). Product pages
+  also include schema.org `Product` data (price, stock) for rich search results.
+- Unknown products and categories answer with a real **404**. That's why the loading
+  skeleton lives in `(browse)/` and not around product and category pages: once a page
+  starts streaming its skeleton, the status code is already sent as 200.
+- `/sitemap.xml` lists the home page, categories and every product (with photos);
+  `/robots.txt` points to it and keeps crawlers out of `/admin`, `/cart` and `/checkout`.
+  Search results and the cart carry `noindex`.
 
 ## Admin
 
