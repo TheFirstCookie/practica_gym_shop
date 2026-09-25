@@ -4,17 +4,29 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { ArrowRight, Search, X } from "lucide-react";
+import { ArrowRight, LayoutGrid, Search, Tag, X } from "lucide-react";
+import { getBrands, getCategories } from "@/lib/api/catalog";
+import type { Brand, Category, ProductSummary } from "@/lib/api/types";
 import { MAX_QUERY_LENGTH } from "@/lib/filters";
 import { formatPrice } from "@/lib/format";
 import { ProductImage } from "./product-image";
 import { useProductSuggestions } from "./use-product-suggestions";
 
 const SUGGESTION_LIMIT = 5;
+const TAXONOMY_LIMIT = 3;
 
-// Header search: suggests products while typing, and Enter opens the full
-// results page. Keyboard follows the combobox pattern: arrows move through
-// the options, Enter picks one, Escape closes the panel, then clears.
+type Option =
+  | { kind: "product"; key: string; href: string; product: ProductSummary }
+  | { kind: "category"; key: string; href: string; category: Category }
+  | { kind: "brand"; key: string; href: string; brand: Brand }
+  | { kind: "all"; key: string; href: string };
+
+const matches = (text: string, query: string) => text.toLowerCase().includes(query.toLowerCase());
+
+// Header search: nothing shows until you type, then matching products, categories and
+// brands pop in as they're found, and Enter opens the full results page. Keyboard follows
+// the combobox pattern: arrows move through the options, Enter picks one, Escape closes
+// the panel, then clears.
 export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
   const router = useRouter();
   const [value, setValue] = useState(initialQuery);
@@ -47,14 +59,16 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
-  // "/" jumps to the search box from anywhere that isn't already a text field.
+  // "/" (outside text fields) or Ctrl/Cmd + K jumps to the search box from anywhere.
   useEffect(() => {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       const target = event.target as HTMLElement;
       const typing =
         target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+      const slash = event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey;
+      const commandK = (event.key === "k" || event.key === "K") && (event.ctrlKey || event.metaKey);
 
-      if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      if (slash || commandK) {
         event.preventDefault();
         inputRef.current?.focus();
       }
@@ -64,15 +78,64 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Categories and brands are few: load them once, the first time the box gets focus,
+  // and match them here as you type. Search still works (products only) if this fails.
+  const [taxonomy, setTaxonomy] = useState<{ categories: Category[]; brands: Brand[] } | null>(null);
+  const taxonomyRequested = useRef(false);
+  function loadTaxonomy() {
+    if (taxonomyRequested.current) return;
+    taxonomyRequested.current = true;
+    Promise.all([getCategories(), getBrands()])
+      .then(([categories, brands]) => setTaxonomy({ categories, brands }))
+      .catch((error: unknown) => {
+        taxonomyRequested.current = false;
+        console.warn("Couldn't load categories and brands for search", error);
+      });
+  }
+
   const query = value.trim();
   const { products: suggestions, total, loading, failed } = useProductSuggestions(
     query,
     SUGGESTION_LIMIT
   );
-  const showPanel = open && query.length > 0;
-  // The "see all results" row is the last option.
-  const optionCount = suggestions.length + 1;
   const resultsHref = `/search?q=${encodeURIComponent(query)}`;
+
+  const categoryMatches = query
+    ? (taxonomy?.categories ?? [])
+        .filter((category) => matches(category.name, query))
+        .slice(0, TAXONOMY_LIMIT)
+    : [];
+  const brandMatches = query
+    ? (taxonomy?.brands ?? []).filter((brand) => matches(brand.name, query)).slice(0, TAXONOMY_LIMIT)
+    : [];
+
+  // Every selectable row in display order; "see all results" is always last.
+  const options: Option[] = [
+    ...suggestions.map((product) => ({
+      kind: "product" as const,
+      key: `p-${product.slug}`,
+      href: `/product/${product.slug}`,
+      product
+    })),
+    ...categoryMatches.map((category) => ({
+      kind: "category" as const,
+      key: `c-${category.slug}`,
+      href: `/category/${category.slug}`,
+      category
+    })),
+    ...brandMatches.map((brand) => ({
+      kind: "brand" as const,
+      key: `b-${brand.slug}`,
+      href: `/search?brand=${encodeURIComponent(brand.slug)}`,
+      brand
+    })),
+    { kind: "all", key: "all", href: resultsHref }
+  ];
+  const optionCount = options.length;
+  const matchCount = options.length - 1;
+  // Nothing shows until something matches (or the search finishes empty-handed), so the
+  // panel never flashes open with just a "Searching…" line.
+  const showPanel = open && query.length > 0 && (matchCount > 0 || !loading);
   const optionId = (index: number) => `${listId}-option-${index}`;
 
   function close() {
@@ -113,10 +176,11 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
       return;
     }
 
-    if (event.key === "Enter" && showPanel && active >= 0 && active < suggestions.length) {
+    if (event.key === "Enter" && showPanel && active >= 0 && active < optionCount) {
       event.preventDefault();
       close();
-      router.push(`/product/${suggestions[active].slug}`);
+      inputRef.current?.blur();
+      router.push(options[active].href);
       return;
     }
 
@@ -168,7 +232,10 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
             setOpen(true);
             setActive(-1);
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            setOpen(true);
+            loadTaxonomy();
+          }}
           onKeyDown={handleKeyDown}
         />
         {value ? (
@@ -195,54 +262,105 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
         <div className="search-panel" onMouseDown={(event) => event.preventDefault()}>
           <div className="dropdown-panel">
             <p className="eyebrow" aria-live="polite">
-              {suggestionHeading({ loading, failed, total, hasResults: suggestions.length > 0 })}
+              {suggestionHeading({ loading, failed, total, otherMatches: matchCount - suggestions.length })}
             </p>
             <ul id={listId} role="listbox" aria-label="Search suggestions">
-              {suggestions.map((product, index) => (
-                <li key={product.slug} role="presentation">
-                  <Link
-                    href={`/product/${product.slug}`}
-                    id={optionId(index)}
-                    className="search-suggestion"
-                    role="option"
-                    aria-selected={active === index}
-                    tabIndex={-1}
-                    onMouseEnter={() => setActive(index)}
-                    onClick={close}
-                  >
-                    <span className="search-suggestion-image">
-                      <ProductImage src={product.image} alt="" />
-                    </span>
-                    <span>
-                      <strong>{product.name}</strong>
-                      <small>
-                        {product.brand.name} - {product.category.name}
-                      </small>
-                    </span>
-                    <span className="search-suggestion-price">
-                      {formatPrice(product.priceCents, product.currency)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-              <li role="presentation">
-                <Link
-                  href={resultsHref}
-                  id={optionId(suggestions.length)}
-                  className="dropdown-footer"
-                  role="option"
-                  aria-selected={active === suggestions.length}
-                  tabIndex={-1}
-                  onMouseEnter={() => setActive(suggestions.length)}
-                  onClick={() => {
-                    close();
-                    inputRef.current?.blur();
-                  }}
-                >
-                  <span>See all results for &ldquo;{query}&rdquo;</span>
-                  <ArrowRight size={16} />
-                </Link>
-              </li>
+              {options.map((option, index) => {
+                // A small heading above the first category and the first brand.
+                const previous = options[index - 1];
+                const heading =
+                  (option.kind === "category" || option.kind === "brand") && previous?.kind !== option.kind
+                    ? option.kind === "category"
+                      ? "Categories"
+                      : "Brands"
+                    : null;
+                const common = {
+                  id: optionId(index),
+                  role: "option" as const,
+                  "aria-selected": active === index,
+                  tabIndex: -1,
+                  onMouseEnter: () => setActive(index)
+                };
+
+                return (
+                  <li key={option.key} role="presentation">
+                    {heading && (
+                      <p className="search-group" role="presentation">
+                        {heading}
+                      </p>
+                    )}
+                    {option.kind === "product" && (
+                      <Link href={option.href} className="search-suggestion" onClick={close} {...common}>
+                        <span className="search-suggestion-image">
+                          <ProductImage src={option.product.image} alt="" />
+                        </span>
+                        <span>
+                          <strong>{option.product.name}</strong>
+                          <small>
+                            {option.product.brand.name} - {option.product.category.name}
+                          </small>
+                        </span>
+                        <span className="search-suggestion-price">
+                          {formatPrice(option.product.priceCents, option.product.currency)}
+                        </span>
+                      </Link>
+                    )}
+                    {option.kind === "category" && (
+                      <Link
+                        href={option.href}
+                        className="search-suggestion search-suggestion-compact"
+                        onClick={close}
+                        {...common}
+                      >
+                        <span
+                          className="search-suggestion-icon"
+                          style={{ "--accent": option.category.accent } as React.CSSProperties}
+                        >
+                          <LayoutGrid size={16} aria-hidden="true" />
+                        </span>
+                        <span>
+                          <strong>{option.category.name}</strong>
+                          <small>
+                            {option.category.count} {option.category.count === 1 ? "product" : "products"}
+                          </small>
+                        </span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                      </Link>
+                    )}
+                    {option.kind === "brand" && (
+                      <Link
+                        href={option.href}
+                        className="search-suggestion search-suggestion-compact"
+                        onClick={close}
+                        {...common}
+                      >
+                        <span className="search-suggestion-icon">
+                          <Tag size={16} aria-hidden="true" />
+                        </span>
+                        <span>
+                          <strong>{option.brand.name}</strong>
+                          <small>Shop the brand</small>
+                        </span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                      </Link>
+                    )}
+                    {option.kind === "all" && (
+                      <Link
+                        href={option.href}
+                        className="dropdown-footer"
+                        onClick={() => {
+                          close();
+                          inputRef.current?.blur();
+                        }}
+                        {...common}
+                      >
+                        <span>See all results for &ldquo;{query}&rdquo;</span>
+                        <ArrowRight size={16} />
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
@@ -255,16 +373,19 @@ function suggestionHeading({
   loading,
   failed,
   total,
-  hasResults
+  otherMatches
 }: {
   loading: boolean;
   failed: boolean;
   total: number;
-  hasResults: boolean;
+  /** Matching categories and brands, which are found instantly. */
+  otherMatches: number;
 }) {
   // Older results stay listed while new ones load, so only say "Searching" over an empty list.
-  if (loading && !hasResults) return "Searching…";
-  if (failed) return "Search is unavailable right now";
-  if (total === 0) return "No matching products";
+  if (loading && total === 0) return "Searching products…";
+  if (failed) {
+    return otherMatches ? "Product search is unavailable right now" : "Search is unavailable right now";
+  }
+  if (total === 0) return otherMatches ? "No matching products" : "No matches";
   return `${total} ${total === 1 ? "product" : "products"}`;
 }

@@ -49,9 +49,9 @@ export function FaqSection() {
       </div>
 
       <div className="faq-list">
-        {faqs.map((faq, index) => (
+        {faqs.map((faq) => (
           // A shared name makes the browser keep only one answer open at a time.
-          <details className="faq-item" name="faq" open={index === 0} key={faq.question}>
+          <details className="faq-item" name="faq" key={faq.question}>
             <summary>
               <span>{faq.question}</span>
               <span className="faq-icon" aria-hidden="true">

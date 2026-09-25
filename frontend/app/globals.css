@@ -410,6 +410,37 @@ img {
   text-transform: uppercase;
 }
 
+/* Category and brand rows: an icon tile instead of a photo, and a shorter row. */
+.search-suggestion-compact {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  color: var(--muted);
+}
+
+.search-suggestion-compact strong {
+  color: var(--text);
+}
+
+.search-suggestion-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  background: var(--soft-fill);
+  border-left: 3px solid var(--accent, var(--line));
+  color: var(--nav-text);
+}
+
+.search-group {
+  margin: 6px 18px 4px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .search-suggestion-price {
   font-size: 0.9rem;
   font-weight: 800;

@@ -27,7 +27,7 @@ const GROUP_ICONS = {
   Brands: Tag
 } satisfies Record<ResultGroup, unknown>;
 
-// Pages you can jump to by name; also what the empty search shows.
+// Pages you can jump to by typing their name.
 const PAGES: Result[] = [
   { key: "p-dashboard", group: "Go to", title: "Dashboard", href: "/admin" },
   { key: "p-to-ship", group: "Go to", title: "Orders to ship", href: "/admin/orders" },
@@ -151,7 +151,8 @@ export function AdminSearch() {
     };
   }, [open, trimmed, run]);
 
-  const pages = trimmed ? PAGES.filter((page) => matches(page.title, trimmed)) : PAGES;
+  // Nothing is listed until you type; results then pop in as they match.
+  const pages = trimmed ? PAGES.filter((page) => matches(page.title, trimmed)) : [];
   const local: Result[] = trimmed
     ? [
         ...(taxonomy?.categories ?? [])
@@ -296,18 +297,30 @@ export function AdminSearch() {
           </ul>
 
           <p className="admin-search-status" aria-live="polite">
-            {failed
-              ? "Search isn't reachable right now. The API may be waking up."
-              : searching
-                ? "Searching…"
-                : trimmed.length === 1
-                  ? "Keep typing to search orders and products."
-                  : trimmed && !results.length
-                    ? `Nothing matches "${trimmed}".`
-                    : ""}
+            {statusMessage({ query: trimmed, failed, searching, hasResults: results.length > 0 })}
           </p>
         </div>
       </dialog>
     </>
   );
+}
+
+/** The line under the results: a hint, progress, or why nothing is listed. */
+function statusMessage({
+  query,
+  failed,
+  searching,
+  hasResults
+}: {
+  query: string;
+  failed: boolean;
+  searching: boolean;
+  hasResults: boolean;
+}) {
+  if (failed) return "Search isn't reachable right now. The API may be waking up.";
+  if (!query) return "Type an order number, email, product, category or brand.";
+  if (searching) return hasResults ? "" : "Searching…";
+  if (query.length === 1) return "Keep typing to search orders and products.";
+  if (!hasResults) return `Nothing matches "${query}".`;
+  return "";
 }
