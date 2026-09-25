@@ -620,6 +620,17 @@ h2 {
   filter: saturate(0.9) contrast(1.02);
 }
 
+/* The hero and product-page frames get their size from the layout, never from the photo:
+   the image (or placeholder) is laid over the frame and cropped to fill it, so a tall or
+   oversized upload can't stretch the page. */
+.hero-product > img,
+.hero-product > .image-placeholder,
+.detail-image > img,
+.detail-image > .image-placeholder {
+  position: absolute;
+  inset: 0;
+}
+
 .hero-product-panel {
   position: absolute;
   right: 18px;
