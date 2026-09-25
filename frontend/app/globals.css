@@ -2466,6 +2466,12 @@ h2 {
     width: auto;
   }
 
+  /* The account menu sits at the right edge, so it opens leftwards. */
+  .account-dropdown {
+    right: 0;
+    left: auto;
+  }
+
   .hero-grid {
     min-height: auto;
   }

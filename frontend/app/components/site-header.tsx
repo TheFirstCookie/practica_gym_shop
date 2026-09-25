@@ -27,8 +27,8 @@ export async function SiteHeader({ compact = false, query }: SiteHeaderProps) {
       <SearchBar initialQuery={query} />
       <nav className="main-nav" aria-label="Primary navigation">
         <CategoriesMenu categories={categories} />
-        <AccountLink />
         <CartLink />
+        <AccountLink />
       </nav>
     </header>
   );
