@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUp, ArrowUpRight } from "lucide-react";
-import { categories } from "@/lib/catalog";
+import { getNavCategories } from "@/lib/api/catalog";
 
 const helpLinks = [
   { label: "FAQs", href: "/#faq" },
@@ -8,7 +8,9 @@ const helpLinks = [
   { label: "Contact us", href: "mailto:hello@forgefit.example" }
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const categories = await getNavCategories();
+
   return (
     <footer className="site-footer">
       <div className="footer-top">

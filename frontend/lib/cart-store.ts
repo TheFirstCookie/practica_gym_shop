@@ -1,14 +1,15 @@
-import { getProduct } from "@/lib/catalog";
-
 // The cart lives in localStorage, which is outside React. This module is the
 // "external store" that <CartProvider> reads through useSyncExternalStore.
 
-// Only slugs and quantities are stored. Prices and stock are always looked up
-// from the catalog, so a stale cart can't carry an old price into checkout.
+// Only slugs and quantities are stored. Prices and stock are always fetched fresh
+// from the API, so a stale cart can't carry an old price into checkout.
 export type CartLine = {
   slug: string;
   quantity: number;
 };
+
+/** Upper bound per line; the real limit is the product's stock, applied when it's known. */
+export const MAX_LINE_QUANTITY = 99;
 
 const storageKey = "forgefit-cart";
 const listeners = new Set<() => void>();
@@ -17,7 +18,8 @@ const listeners = new Set<() => void>();
 // and keeps the cart working for this visit when storage is blocked (private mode).
 let cache: CartLine[] | null = null;
 
-// Drops unknown products and duplicates, and keeps each quantity between 1 and the stock on hand.
+// Drops malformed lines and duplicates, and keeps each quantity between 1 and the line cap.
+// Products that no longer exist are removed by the cart page once the API says so.
 function sanitize(lines: unknown): CartLine[] {
   if (!Array.isArray(lines)) {
     return [];
@@ -26,16 +28,16 @@ function sanitize(lines: unknown): CartLine[] {
   const result: CartLine[] = [];
 
   for (const line of lines as Partial<CartLine>[]) {
-    const product = typeof line?.slug === "string" ? getProduct(line.slug) : undefined;
+    const slug = line?.slug;
 
-    if (!product || result.some((item) => item.slug === product.slug)) {
+    if (typeof slug !== "string" || !slug || result.some((item) => item.slug === slug)) {
       continue;
     }
 
-    const quantity = Math.min(Math.floor(Number(line.quantity)), product.stock);
+    const quantity = Math.min(Math.floor(Number(line.quantity)), MAX_LINE_QUANTITY);
 
     if (quantity >= 1) {
-      result.push({ slug: product.slug, quantity });
+      result.push({ slug, quantity });
     }
   }
 

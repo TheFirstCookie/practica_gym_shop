@@ -14,7 +14,8 @@ type CartContextValue = {
   count: number;
   // False until the saved cart has been read, so nothing flashes "empty" on load.
   ready: boolean;
-  add: (slug: string, quantity?: number) => void;
+  /** `stock` caps the line total when the caller knows it (product page). */
+  add: (slug: string, quantity?: number, stock?: number) => void;
   setQuantity: (slug: string, quantity: number) => void;
   remove: (slug: string) => void;
   clear: () => void;
@@ -29,13 +30,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const ready = stored !== null;
   const lines = stored ?? emptyCart;
 
-  const add = useCallback((slug: string, quantity = 1) => {
+  const add = useCallback((slug: string, quantity = 1, stock = Infinity) => {
     updateCart((current) =>
       current.some((line) => line.slug === slug)
         ? current.map((line) =>
-            line.slug === slug ? { ...line, quantity: line.quantity + quantity } : line
+            line.slug === slug
+              ? { ...line, quantity: Math.min(line.quantity + quantity, stock) }
+              : line
           )
-        : [...current, { slug, quantity }]
+        : [...current, { slug, quantity: Math.min(quantity, stock) }]
     );
   }, []);
 

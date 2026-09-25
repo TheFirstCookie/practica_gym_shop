@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { formatPrice, type Product } from "@/lib/catalog";
+import type { ProductSummary } from "@/lib/api/types";
+import { formatPrice } from "@/lib/format";
+import { ProductImage } from "./product-image";
 import { TagBadge } from "./tag-badge";
 
 type ProductGridProps = {
-  products: Product[];
+  products: ProductSummary[];
   featureFirst?: boolean;
   clearHref: string;
 };
@@ -27,18 +29,18 @@ export function ProductGrid({ products, featureFirst = false, clearHref }: Produ
         <Link
           href={`/product/${product.slug}`}
           className={featureFirst && index === 0 ? "product-card featured-card" : "product-card"}
-          key={product.slug}
+          key={product.id}
         >
           <div className="product-image">
-            <img src={product.image} alt={product.name} />
-            <TagBadge tag={product.tag} className="product-tag" />
+            <ProductImage src={product.image} alt={product.name} />
+            {product.tag && <TagBadge tag={product.tag} className="product-tag" />}
           </div>
           <div className="product-info">
             <div>
-              <small>{product.brand}</small>
+              <small>{product.brand.name}</small>
               <h3>{product.name}</h3>
             </div>
-            <strong>{formatPrice(product.price)}</strong>
+            <strong>{formatPrice(product.priceCents, product.currency)}</strong>
           </div>
         </Link>
       ))}

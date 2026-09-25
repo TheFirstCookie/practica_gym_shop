@@ -1,11 +1,11 @@
 import { Fragment } from "react";
-import { categories } from "@/lib/catalog";
+import type { Category } from "@/lib/api/types";
 import { storePerks } from "@/lib/store-info";
 
-const items = [...storePerks.map((perk) => perk.title), ...categories.map((c) => c.name)];
-
 // The track holds the list twice and slides by half its width, so the loop is seamless.
-export function MarqueeStrip() {
+export function MarqueeStrip({ categories }: { categories: Category[] }) {
+  const items = [...storePerks.map((perk) => perk.title), ...categories.map((c) => c.name)];
+
   return (
     <div className="marquee" role="presentation">
       <div className="marquee-track">

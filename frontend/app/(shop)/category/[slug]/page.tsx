@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  applyFilters,
-  categories,
-  getBrandFacets,
-  getProductsByCategory,
-  parseFilters,
-  type SearchParams
-} from "@/lib/catalog";
+import { getCategory, listProducts } from "@/lib/api/catalog";
+import { PAGE_SIZE, parseFilters, parsePage, type SearchParams } from "@/lib/filters";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
+import { Pagination } from "@/app/components/pagination";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -20,22 +15,30 @@ type CategoryPageProps = {
 export async function generateMetadata({
   params
 }: Pick<CategoryPageProps, "params">): Promise<Metadata> {
-  const { slug } = await params;
-  const category = categories.find((item) => item.slug === slug);
+  const category = await getCategory((await params).slug);
   return category ? { title: category.name } : {};
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const { slug } = await params;
-  const category = categories.find((item) => item.slug === slug);
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  const filters = parseFilters(query);
+
+  const [category, catalog] = await Promise.all([
+    getCategory(slug),
+    listProducts({
+      category: slug,
+      brands: filters.brands,
+      sort: filters.sort,
+      page: parsePage(query),
+      pageSize: PAGE_SIZE
+    })
+  ]);
 
   if (!category) {
     notFound();
   }
 
-  const products = getProductsByCategory(slug);
-  const filters = parseFilters(await searchParams);
-  const visible = applyFilters(products, filters);
+  const pathname = `/category/${category.slug}`;
 
   return (
     <main>
@@ -50,11 +53,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
       <section className="catalog-section">
         <FilterBar
-          brands={getBrandFacets(products, filters.brands)}
+          brands={catalog.meta.facets.brands}
           filters={filters}
-          resultCount={visible.length}
+          resultCount={catalog.meta.pagination.total}
         />
-        <ProductGrid products={visible} clearHref={`/category/${category.slug}`} />
+        <ProductGrid products={catalog.data} clearHref={pathname} />
+        <Pagination pagination={catalog.meta.pagination} pathname={pathname} searchParams={query} />
       </section>
     </main>
   );

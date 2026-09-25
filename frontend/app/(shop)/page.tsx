@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { ArrowRight, Zap } from "lucide-react";
+import { getCategories, listProducts } from "@/lib/api/catalog";
+import { formatPrice } from "@/lib/format";
 import {
-  applyFilters,
-  brands,
-  categories,
-  formatPrice,
-  getBrandFacets,
+  PAGE_SIZE,
   hasActiveFilters,
   parseFilters,
-  products,
+  parsePage,
   type SearchParams
-} from "@/lib/catalog";
+} from "@/lib/filters";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
+import { ProductImage } from "@/app/components/product-image";
+import { Pagination } from "@/app/components/pagination";
 import { FaqSection } from "@/app/components/faq-section";
 import { MarqueeStrip } from "@/app/components/marquee-strip";
 import { PerksBand } from "@/app/components/perks-band";
@@ -24,9 +24,23 @@ type HomeProps = {
 };
 
 export default async function Home({ searchParams }: HomeProps) {
-  const featured = products.slice(0, 4);
-  const filters = parseFilters(await searchParams);
-  const visible = applyFilters(products, filters);
+  const params = await searchParams;
+  const filters = parseFilters(params);
+  const page = parsePage(params);
+
+  // Independent requests, fetched in parallel. The hero always shows the top featured
+  // product, whatever filters the catalog below has.
+  const [categories, featured, catalog] = await Promise.all([
+    getCategories(),
+    listProducts({ pageSize: 1 }),
+    listProducts({ brands: filters.brands, sort: filters.sort, page, pageSize: PAGE_SIZE })
+  ]);
+
+  const hero = featured.data[0];
+  const totalProducts = featured.meta.pagination.total;
+  const brandCount = featured.meta.facets.brands.filter((brand) => brand.count > 0).length;
+  // The big featured tile only makes sense in the default order, on the first page.
+  const featureFirst = !hasActiveFilters(filters) && page === 1;
 
   return (
     <main>
@@ -37,8 +51,8 @@ export default async function Home({ searchParams }: HomeProps) {
           <p className="eyebrow">Training gear for serious daily use</p>
           <h1 id="home-title">Build the room before the routine breaks.</h1>
           <p className="hero-text">
-            Strength equipment, conditioning tools, recovery staples, and smart
-            storage selected for home gyms and compact studios.
+            Strength equipment, conditioning tools, recovery staples, and smart storage selected
+            for home gyms and compact studios.
           </p>
           <div className="hero-actions">
             <Link href="#catalog" className="button primary">
@@ -53,11 +67,11 @@ export default async function Home({ searchParams }: HomeProps) {
           <dl className="hero-stats">
             <div>
               <dt>Products</dt>
-              <dd>{products.length}</dd>
+              <dd>{totalProducts}</dd>
             </div>
             <div>
               <dt>Brands</dt>
-              <dd>{brands.length}</dd>
+              <dd>{brandCount}</dd>
             </div>
             <div>
               <dt>Categories</dt>
@@ -66,19 +80,21 @@ export default async function Home({ searchParams }: HomeProps) {
           </dl>
         </div>
 
-        <div className="hero-product">
-          <img src={featured[0].image} alt={featured[0].name} />
-          <div className="hero-product-panel">
-            <TagBadge tag={featured[0].tag} />
-            <strong>{featured[0].name}</strong>
-            <small>
-              {formatPrice(featured[0].price)} - {featured[0].stock} in stock
-            </small>
-          </div>
-        </div>
+        {hero && (
+          <Link href={`/product/${hero.slug}`} className="hero-product">
+            <ProductImage src={hero.image} alt={hero.name} />
+            <div className="hero-product-panel">
+              {hero.tag && <TagBadge tag={hero.tag} />}
+              <strong>{hero.name}</strong>
+              <small>
+                {formatPrice(hero.priceCents, hero.currency)} - {hero.stock} in stock
+              </small>
+            </div>
+          </Link>
+        )}
       </section>
 
-      <MarqueeStrip />
+      <MarqueeStrip categories={categories} />
 
       <section className="category-strip" aria-label="Featured categories">
         {categories.map((category) => (
@@ -104,15 +120,16 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
 
         <FilterBar
-          brands={getBrandFacets(products, filters.brands)}
+          brands={catalog.meta.facets.brands}
           filters={filters}
-          resultCount={visible.length}
+          resultCount={catalog.meta.pagination.total}
         />
-        {/* The big featured tile only makes sense in the default order. */}
-        <ProductGrid
-          products={visible}
-          featureFirst={!hasActiveFilters(filters)}
-          clearHref="/#catalog"
+        <ProductGrid products={catalog.data} featureFirst={featureFirst} clearHref="/#catalog" />
+        <Pagination
+          pagination={catalog.meta.pagination}
+          pathname="/"
+          searchParams={params}
+          hash="#catalog"
         />
       </section>
 

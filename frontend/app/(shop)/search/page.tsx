@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getCategories, listProducts } from "@/lib/api/catalog";
 import {
-  applyFilters,
-  categories,
-  getBrandFacets,
+  PAGE_SIZE,
   parseFilters,
+  parsePage,
   parseQuery,
-  products,
-  searchProducts,
   type SearchParams
-} from "@/lib/catalog";
+} from "@/lib/filters";
 import { SiteHeader } from "@/app/components/site-header";
 import { FilterBar } from "@/app/components/filter-bar";
 import { ProductGrid } from "@/app/components/product-grid";
+import { Pagination } from "@/app/components/pagination";
 
 type SearchPageProps = {
   searchParams: Promise<SearchParams>;
@@ -29,12 +28,25 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const resolvedParams = await searchParams;
-  const query = parseQuery(resolvedParams);
+  const params = await searchParams;
+  const query = parseQuery(params);
+  const filters = parseFilters(params);
+
   // An empty search shows the whole catalog rather than a blank page.
-  const matches = query ? searchProducts(products, query) : products;
-  const filters = parseFilters(resolvedParams);
-  const visible = applyFilters(matches, filters);
+  const [catalog, categories] = await Promise.all([
+    listProducts({
+      q: query || undefined,
+      brands: filters.brands,
+      sort: filters.sort,
+      page: parsePage(params),
+      pageSize: PAGE_SIZE
+    }),
+    getCategories()
+  ]);
+
+  // Brand facets ignore the brand filter, so zero across the board means the words
+  // themselves matched nothing (rather than the chosen brands hiding everything).
+  const noMatches = catalog.meta.facets.brands.every((brand) => brand.count === 0);
 
   return (
     <main>
@@ -48,7 +60,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </section>
 
       <section className="catalog-section">
-        {matches.length === 0 ? (
+        {noMatches ? (
           <div className="empty-state">
             <h3>No results for &ldquo;{query}&rdquo;</h3>
             <p>Check the spelling, try a more general word, or browse a category.</p>
@@ -64,14 +76,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         ) : (
           <>
             <FilterBar
-              brands={getBrandFacets(matches, filters.brands)}
+              brands={catalog.meta.facets.brands}
               filters={filters}
-              resultCount={visible.length}
+              resultCount={catalog.meta.pagination.total}
             />
             <ProductGrid
-              products={visible}
+              products={catalog.data}
               clearHref={query ? `/search?q=${encodeURIComponent(query)}` : "/search"}
             />
+            <Pagination pagination={catalog.meta.pagination} pathname="/search" searchParams={params} />
           </>
         )}
       </section>

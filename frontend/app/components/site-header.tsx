@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Dumbbell } from "lucide-react";
+import { getNavCategories } from "@/lib/api/catalog";
 import { CategoriesMenu } from "./categories-menu";
 import { CartLink } from "./cart-link";
 import { SearchBar } from "./search-bar";
@@ -10,7 +11,10 @@ type SiteHeaderProps = {
   query?: string;
 };
 
-export function SiteHeader({ compact = false, query }: SiteHeaderProps) {
+export async function SiteHeader({ compact = false, query }: SiteHeaderProps) {
+  // Cached and shared with the rest of the page, so this doesn't cost an extra round trip.
+  const categories = await getNavCategories();
+
   return (
     <header className={compact ? "site-header compact" : "site-header"}>
       <Link href="/" className="brand" aria-label="ForgeFit Supply home">
@@ -21,7 +25,7 @@ export function SiteHeader({ compact = false, query }: SiteHeaderProps) {
       </Link>
       <SearchBar initialQuery={query} />
       <nav className="main-nav" aria-label="Primary navigation">
-        <CategoriesMenu />
+        <CategoriesMenu categories={categories} />
         <CartLink />
       </nav>
     </header>

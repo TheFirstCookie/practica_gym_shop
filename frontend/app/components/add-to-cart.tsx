@@ -30,7 +30,7 @@ export function AddToCart({ slug, name, stock }: AddToCartProps) {
   }, [justAdded]);
 
   function handleAdd() {
-    add(slug, chosen);
+    add(slug, chosen, stock);
     setQuantity(1);
     setJustAdded(true);
   }

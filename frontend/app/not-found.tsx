@@ -1,25 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { SiteHeader } from "./components/site-header";
+import { NotFoundContent } from "./components/not-found-content";
+import { SiteFooter } from "./components/site-footer";
 
 export const metadata: Metadata = {
   title: "Page not found"
 };
 
+// For URLs that match no route. These render outside the (shop) layout, so the footer is
+// added here; a missing product or category uses app/(shop)/not-found.tsx instead.
 export default function NotFound() {
   return (
-    <main>
-      <SiteHeader compact />
-      <section className="empty-page">
-        <p className="eyebrow">404</p>
-        <h1>Page not found</h1>
-        <p>That product or page doesn&apos;t exist, or it has moved.</p>
-        <Link href="/#catalog" className="button primary">
-          <span>Back to the shop</span>
-          <ArrowRight size={18} />
-        </Link>
-      </section>
-    </main>
+    <>
+      <NotFoundContent />
+      <SiteFooter />
+    </>
   );
 }

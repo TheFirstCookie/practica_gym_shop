@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SiteFooter } from "./components/site-footer";
 import { CartProvider } from "./components/cart-provider";
 import { bodyFont, displayFont } from "./fonts";
 
@@ -12,6 +11,7 @@ export const metadata: Metadata = {
   description: "Gym and sport equipment storefront draft"
 };
 
+// Shared by the storefront, app/(shop), and the admin area, app/admin. Each adds its own chrome.
 export default function RootLayout({
   children
 }: Readonly<{
@@ -20,10 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${displayFont.variable} ${bodyFont.variable}`}>
       <body>
-        <CartProvider>
-          {children}
-          <SiteFooter />
-        </CartProvider>
+        <CartProvider>{children}</CartProvider>
       </body>
     </html>
   );

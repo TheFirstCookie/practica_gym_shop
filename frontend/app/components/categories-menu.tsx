@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { categories } from "@/lib/catalog";
+import type { Category } from "@/lib/api/types";
 import { useHoverMenu } from "./use-hover-menu";
 
-export function CategoriesMenu() {
+export function CategoriesMenu({ categories }: { categories: Category[] }) {
   const { open, setOpen, containerProps, triggerProps } = useHoverMenu();
   const pathname = usePathname();
 

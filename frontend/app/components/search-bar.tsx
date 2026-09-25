@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { ArrowRight, Search, X } from "lucide-react";
-import { MAX_QUERY_LENGTH, formatPrice, products, searchProducts } from "@/lib/catalog";
+import { MAX_QUERY_LENGTH } from "@/lib/filters";
+import { formatPrice } from "@/lib/format";
+import { ProductImage } from "./product-image";
+import { useProductSuggestions } from "./use-product-suggestions";
 
 const SUGGESTION_LIMIT = 5;
 
@@ -62,8 +65,10 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
   }, []);
 
   const query = value.trim();
-  const matches = query ? searchProducts(products, query) : [];
-  const suggestions = matches.slice(0, SUGGESTION_LIMIT);
+  const { products: suggestions, total, loading, failed } = useProductSuggestions(
+    query,
+    SUGGESTION_LIMIT
+  );
   const showPanel = open && query.length > 0;
   // The "see all results" row is the last option.
   const optionCount = suggestions.length + 1;
@@ -189,10 +194,8 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
         // doesn't blur the form and close the panel before the click lands.
         <div className="search-panel" onMouseDown={(event) => event.preventDefault()}>
           <div className="dropdown-panel">
-            <p className="eyebrow">
-              {matches.length > 0
-                ? `${matches.length} ${matches.length === 1 ? "product" : "products"}`
-                : "No matching products"}
+            <p className="eyebrow" aria-live="polite">
+              {suggestionHeading({ loading, failed, total, hasResults: suggestions.length > 0 })}
             </p>
             <ul id={listId} role="listbox" aria-label="Search suggestions">
               {suggestions.map((product, index) => (
@@ -207,14 +210,18 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
                     onMouseEnter={() => setActive(index)}
                     onClick={close}
                   >
-                    <img src={product.image} alt="" />
+                    <span className="search-suggestion-image">
+                      <ProductImage src={product.image} alt="" />
+                    </span>
                     <span>
                       <strong>{product.name}</strong>
                       <small>
-                        {product.brand} - {product.category}
+                        {product.brand.name} - {product.category.name}
                       </small>
                     </span>
-                    <span className="search-suggestion-price">{formatPrice(product.price)}</span>
+                    <span className="search-suggestion-price">
+                      {formatPrice(product.priceCents, product.currency)}
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -242,4 +249,22 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
       )}
     </form>
   );
+}
+
+function suggestionHeading({
+  loading,
+  failed,
+  total,
+  hasResults
+}: {
+  loading: boolean;
+  failed: boolean;
+  total: number;
+  hasResults: boolean;
+}) {
+  // Older results stay listed while new ones load, so only say "Searching" over an empty list.
+  if (loading && !hasResults) return "Searching…";
+  if (failed) return "Search is unavailable right now";
+  if (total === 0) return "No matching products";
+  return `${total} ${total === 1 ? "product" : "products"}`;
 }

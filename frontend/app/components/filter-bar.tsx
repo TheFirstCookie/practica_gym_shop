@@ -3,14 +3,9 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Check, ChevronDown, RotateCcw, X } from "lucide-react";
-import { sortOptions, type ProductFilters, type SortOption } from "@/lib/catalog";
+import type { BrandFacet, ProductSort } from "@/lib/api/types";
+import { sortOptions, type ProductFilters } from "@/lib/filters";
 import { useHoverMenu } from "./use-hover-menu";
-
-type BrandFacet = {
-  name: string;
-  slug: string;
-  count: number;
-};
 
 type FilterBarProps = {
   brands: BrandFacet[];
@@ -41,6 +36,8 @@ export function FilterBar({ brands, filters, resultCount }: FilterBarProps) {
     const params = new URLSearchParams(window.location.search);
     params.delete("brand");
     params.delete("sort");
+    // New filters mean a new result set, so start again from its first page.
+    params.delete("page");
     next.brands.forEach((slug) => params.append("brand", slug));
     if (next.sort !== "featured") {
       params.set("sort", next.sort);
@@ -60,11 +57,16 @@ export function FilterBar({ brands, filters, resultCount }: FilterBarProps) {
     update({ ...current, brands: selected });
   }
 
+  // Brands with nothing to show are hidden, unless selected (so they can be switched off).
+  const visibleBrands = brands.filter(
+    (brand) => brand.count > 0 || current.brands.includes(brand.slug)
+  );
+
   return (
     <div className="filter-bar" data-pending={isPending || undefined}>
       <div className="filter-group" role="group" aria-label="Filter by brand">
         <span className="filter-label">Brand</span>
-        {brands.map((brand) => (
+        {visibleBrands.map((brand) => (
           <button
             type="button"
             className="filter-chip"
@@ -102,13 +104,13 @@ function SortMenu({
   value,
   onChange
 }: {
-  value: SortOption;
-  onChange: (sort: SortOption) => void;
+  value: ProductSort;
+  onChange: (sort: ProductSort) => void;
 }) {
   const { open, setOpen, containerProps, triggerProps } = useHoverMenu();
   const active = sortOptions.find((option) => option.value === value);
 
-  function choose(sort: SortOption) {
+  function choose(sort: ProductSort) {
     setOpen(false);
     onChange(sort);
   }
