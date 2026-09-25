@@ -17,6 +17,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { state, signOut, recheck } = useAdminSession();
   const onLogin = pathname === LOGIN_PATH;
+  const section = pathname.startsWith("/admin/orders") ? "orders" : "products";
 
   useEffect(() => {
     if (!onLogin && state.status === "signed-out") {
@@ -48,8 +49,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </span>
         </Link>
         <nav className="admin-nav" aria-label="Admin">
-          <Link href="/admin" aria-current={pathname === "/admin" ? "page" : undefined}>
+          <Link href="/admin" aria-current={section === "products" ? "page" : undefined}>
             Products
+          </Link>
+          <Link href="/admin/orders" aria-current={section === "orders" ? "page" : undefined}>
+            Orders
           </Link>
           <Link href="/" target="_blank" rel="noreferrer">
             <span>View shop</span>

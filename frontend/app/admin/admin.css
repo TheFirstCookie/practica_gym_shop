@@ -327,6 +327,8 @@
 
 .admin-tabs {
   display: flex;
+  max-width: 100%;
+  overflow-x: auto;
   border: 1px solid var(--line);
 }
 
@@ -341,6 +343,7 @@
   font-size: 0.8rem;
   font-weight: 800;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .admin-tabs button:last-child {
@@ -353,6 +356,8 @@
 }
 
 .admin-table-wrap {
+  /* Contains the visually hidden "Actions" header, which would otherwise widen the page. */
+  position: relative;
   overflow-x: auto;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -578,8 +583,220 @@
   border-top: 1px solid var(--line);
 }
 
+/* Orders */
+
+.order-badge[data-status="pending"] {
+  border-color: rgba(227, 187, 73, 0.45);
+  color: var(--gold);
+}
+
+.order-badge[data-status="paid"] {
+  border-color: var(--brand);
+  background: rgba(255, 107, 26, 0.12);
+  color: var(--brand);
+}
+
+.order-badge[data-status="fulfilled"] {
+  border-color: rgba(66, 196, 159, 0.5);
+  color: var(--green);
+}
+
+.admin-tab-count {
+  margin-left: 6px;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-notice-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-order-cell,
+.admin-order-customer {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-order-cell strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.admin-order-cell:hover strong {
+  color: var(--brand);
+}
+
+.admin-order-cell small,
+.admin-order-customer small {
+  color: var(--muted);
+}
+
+.admin-order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-order-actions .order-badge {
+  padding: 8px 12px;
+}
+
+.admin-order-note {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-left: 4px solid var(--gold);
+  color: var(--body-text);
+}
+
+.admin-order .admin-error {
+  margin-top: 16px;
+}
+
+.admin-order-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.admin-panel-title {
+  margin: 0;
+  color: var(--brand);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  /* The heavy cut's space is very narrow at this size. */
+  word-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.admin-order-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.admin-order-items th,
+.admin-order-items td {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-order-items th + th,
+.admin-order-items td + td {
+  padding-left: 12px;
+}
+
+.admin-order-items thead th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-order-items .numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-order-items tbody a:hover {
+  color: var(--brand);
+}
+
+.admin-order-items tfoot th {
+  color: var(--muted);
+  font-weight: 700;
+  text-align: right;
+}
+
+.admin-order-items tfoot tr:last-child th,
+.admin-order-items tfoot tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-order-total th,
+.admin-order-total td {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.admin-order-address {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.admin-order-address address {
+  display: grid;
+  gap: 2px;
+  font-style: normal;
+  line-height: 1.5;
+}
+
+.admin-order-address address span:first-child {
+  font-weight: 800;
+}
+
+.admin-order-email {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.admin-order-email a:hover,
+.admin-external-link:hover {
+  color: var(--brand);
+}
+
+.admin-order-timeline,
+.admin-order-refs {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.admin-order-timeline dt,
+.admin-order-refs dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.admin-order-timeline dd,
+.admin-order-refs dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-order-refs dd {
+  overflow-wrap: anywhere;
+  color: var(--body-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.admin-external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+}
+
 @media (max-width: 900px) {
-  .admin-form-grid {
+  .admin-form-grid,
+  .admin-order-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -43,13 +43,13 @@ app/
 │   ├── page.tsx            # home: hero, categories, filterable catalog
 │   ├── category/[slug]/  product/[slug]/  search/  cart/
 │   ├── checkout/success/   # order confirmation after Stripe
-├── admin/                  # /admin: sign-in and product management
+├── admin/                  # /admin: sign-in, products and orders
 │   ├── layout.tsx          # session provider + guard, admin.css
 │   ├── admin-session.tsx   # Supabase session, admin check via the API
 │   ├── admin-shell.tsx     # redirects to /admin/login, admin header
 │   ├── actions.ts          # server action: refresh the storefront cache after edits
-│   ├── login/  products/new/  products/[id]/
-│   └── components/         # product table, editor, image upload, login form
+│   ├── login/  products/new/  products/[id]/  orders/  orders/[id]/
+│   └── components/         # product table/editor, image upload, order table/detail, login form
 ├── components/             # storefront components
 └── fonts/                  # self-hosted Anton + Archivo
 lib/
@@ -57,7 +57,7 @@ lib/
 │   ├── client.ts           # fetch wrapper, ApiError
 │   ├── catalog.ts          # public reads (cached 60 s, tag "catalog")
 │   ├── checkout.ts         # start / look up / abandon a Stripe checkout
-│   ├── admin.ts            # admin calls (token required, never cached)
+│   ├── admin.ts            # admin calls: products, uploads, orders (token required, never cached)
 │   └── types.ts            # API response shapes
 ├── supabase/client.ts      # browser client for admin sign-in and uploads
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
@@ -91,3 +91,10 @@ lib/
 Open `/admin` and sign in with the Supabase account that has the admin role (see the API's
 README for creating it). Anyone else is sent to the login page or told they lack access,
 and the API rejects their requests regardless of what the UI shows.
+
+- **Products** (`/admin`): search, create, edit, upload photos, hide from or restore to the shop.
+- **Orders** (`/admin/orders`): opens on *To ship* (paid orders). Search by email, name or
+  order number, mark orders as shipped (with undo), and open an order for its items,
+  shipping address (with a copy button for labels), timeline and a link to the payment in
+  Stripe. *Awaiting payment* are checkouts still open on Stripe; *Cancelled* ones expired
+  or were abandoned, and their stock was put back.

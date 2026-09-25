@@ -18,3 +18,16 @@ export function formatPrice(cents: number, currency = "usd") {
 
   return formatter.format(cents / 100);
 }
+
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit"
+});
+
+/** "2026-09-25T14:39:32Z" -> "Sep 25, 2026, 4:39 PM" in the viewer's time zone. */
+export function formatDateTime(iso: string) {
+  return dateTimeFormatter.format(new Date(iso));
+}

@@ -1,5 +1,13 @@
 import { apiRequest } from "./client";
-import type { AdminProduct, DataEnvelope, ProductList, ProductSort } from "./types";
+import type {
+  AdminOrder,
+  AdminOrderList,
+  AdminProduct,
+  DataEnvelope,
+  OrderStatus,
+  ProductList,
+  ProductSort
+} from "./types";
 
 // Admin endpoints. Every call needs the signed-in admin's access token, and none are
 // cached: the admin must always see what's actually in the database.
@@ -35,6 +43,16 @@ export type ProductInput = {
   sortOrder: number;
   isActive: boolean;
 };
+
+export type AdminOrderListParams = {
+  status?: OrderStatus | "all";
+  q?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+/** The only status changes an admin makes by hand: ship a paid order, or undo that. */
+export type ManualOrderStatus = "fulfilled" | "paid";
 
 export type ImageUploadTicket = {
   bucket: string;
@@ -114,6 +132,38 @@ export async function createImageUpload(
     method: "POST",
     token,
     body: { contentType }
+  });
+  return data;
+}
+
+export function listAdminOrders(
+  token: string,
+  params: AdminOrderListParams,
+  signal?: AbortSignal
+): Promise<AdminOrderList> {
+  return apiRequest<AdminOrderList>("/admin/orders", {
+    ...noStore,
+    token,
+    signal,
+    query: { status: params.status, q: params.q, page: params.page, pageSize: params.pageSize }
+  });
+}
+
+export async function getAdminOrder(token: string, id: string): Promise<AdminOrder> {
+  const { data } = await apiRequest<DataEnvelope<AdminOrder>>(`/admin/orders/${id}`, { ...noStore, token });
+  return data;
+}
+
+/** 409 invalid_status_transition when the order isn't in a state that allows it. */
+export async function updateOrderStatus(
+  token: string,
+  id: string,
+  status: ManualOrderStatus
+): Promise<AdminOrder> {
+  const { data } = await apiRequest<DataEnvelope<AdminOrder>>(`/admin/orders/${id}`, {
+    method: "PATCH",
+    token,
+    body: { status }
   });
   return data;
 }

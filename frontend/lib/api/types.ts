@@ -90,3 +90,63 @@ export type CheckoutOrder = {
     lineTotalCents: number;
   }[];
 };
+
+/** One row of the admin order list. */
+export type AdminOrderSummary = {
+  id: string;
+  status: OrderStatus;
+  customerEmail: string | null;
+  customerName: string | null;
+  currency: string;
+  totalCents: number;
+  itemCount: number;
+  createdAt: string;
+  paidAt: string | null;
+  fulfilledAt: string | null;
+};
+
+/** Where to ship, as collected by Stripe Checkout. */
+export type ShippingAddress = {
+  name: string | null;
+  line1: string | null;
+  line2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  /** Two-letter country code, e.g. "MD". */
+  country: string | null;
+};
+
+/** Everything the admin needs to pack and ship one order. */
+export type AdminOrder = AdminOrderSummary & {
+  subtotalCents: number;
+  shippingAddress: ShippingAddress | null;
+  cancelledAt: string | null;
+  updatedAt: string;
+  stripe: {
+    checkoutSessionId: string | null;
+    paymentIntentId: string | null;
+    /** The payment in the Stripe dashboard, when there is one. */
+    dashboardUrl: string | null;
+  };
+  items: {
+    id: string;
+    /** null when the product has since been deleted. */
+    productId: string | null;
+    name: string;
+    unitPriceCents: number;
+    quantity: number;
+    lineTotalCents: number;
+  }[];
+};
+
+export type OrderStatusCounts = Record<OrderStatus | "all", number>;
+
+export type AdminOrderList = {
+  data: AdminOrderSummary[];
+  meta: {
+    pagination: Pagination;
+    /** Orders per status across the whole shop, for the tabs. */
+    counts: OrderStatusCounts;
+  };
+};
