@@ -42,6 +42,7 @@ app/
 │   ├── not-found.tsx       # unknown product/category
 │   ├── page.tsx            # home: hero, categories, filterable catalog
 │   ├── category/[slug]/  product/[slug]/  search/  cart/
+│   ├── checkout/success/   # order confirmation after Stripe
 ├── admin/                  # /admin: sign-in and product management
 │   ├── layout.tsx          # session provider + guard, admin.css
 │   ├── admin-session.tsx   # Supabase session, admin check via the API
@@ -55,10 +56,12 @@ lib/
 ├── api/                    # the only code that calls the backend
 │   ├── client.ts           # fetch wrapper, ApiError
 │   ├── catalog.ts          # public reads (cached 60 s, tag "catalog")
+│   ├── checkout.ts         # start / look up / abandon a Stripe checkout
 │   ├── admin.ts            # admin calls (token required, never cached)
 │   └── types.ts            # API response shapes
 ├── supabase/client.ts      # browser client for admin sign-in and uploads
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
+├── pending-checkout.ts     # remembers the open Stripe session for the "back" link
 ├── filters.ts              # URL params -> filters (?brand, ?sort, ?page, ?q)
 ├── format.ts               # prices in cents -> "$29.99"
 └── store-info.ts           # shipping/returns/warranty copy
@@ -74,6 +77,12 @@ lib/
   visible on the next page view.
 - **The cart** stores only slugs and quantities; the cart page fetches current prices and
   stock, so it can't show stale prices.
+- **Checkout** sends only slugs and quantities to the API, which reserves the stock and
+  returns a Stripe Checkout link. Stripe returns the shopper to `/checkout/success`, which
+  polls the order until the payment is confirmed and then empties the cart. Coming back
+  through Stripe's "back" link releases the reserved stock right away. If stock ran out
+  meanwhile, the cart is corrected and the shopper is told what changed. Test card:
+  `4242 4242 4242 4242`.
 - **Product photos** upload from the browser straight to Supabase Storage using a one-time
   signed URL from the API.
 

@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, CreditCard, Minus, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowRight, Minus, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { abandonCheckoutSession } from "@/lib/api/checkout";
 import type { Product } from "@/lib/api/types";
 import { formatPrice } from "@/lib/format";
+import { takePendingCheckout } from "@/lib/pending-checkout";
 import { useCart } from "./cart-provider";
+import { CheckoutPanel } from "./checkout-panel";
 import { ProductImage } from "./product-image";
 import { useCartProducts } from "./use-cart-products";
 
@@ -16,10 +19,29 @@ type CartItem = {
   product: Product | null | undefined;
 };
 
-export function CartView() {
+type CartViewProps = {
+  /** Set when Stripe sends the shopper back without paying. */
+  checkoutCancelled?: boolean;
+};
+
+export function CartView({ checkoutCancelled = false }: CartViewProps) {
   const { lines, count, ready, setQuantity, remove } = useCart();
   const { products, loading, failed, retry } = useCartProducts(lines.map((line) => line.slug));
-  const [showCheckoutNote, setShowCheckoutNote] = useState(false);
+  // What checkout changed in the cart (e.g. a product sold out), kept here so it still
+  // shows if that change emptied the cart.
+  const [adjustment, setAdjustment] = useState<string | null>(null);
+
+  // Back from Stripe without paying: release the stock that checkout was holding.
+  useEffect(() => {
+    if (!checkoutCancelled) return;
+    const sessionId = takePendingCheckout();
+    if (sessionId) {
+      abandonCheckoutSession(sessionId).catch((error: unknown) => {
+        // Not fatal: Stripe expires the session within 30 minutes anyway.
+        console.warn("Couldn't release the abandoned checkout", error);
+      });
+    }
+  }, [checkoutCancelled]);
 
   const items: CartItem[] = lines.map((line) => ({ ...line, product: products[line.slug] }));
   const purchasable = items.filter(
@@ -57,7 +79,11 @@ export function CartView() {
       <section className="empty-page">
         <p className="eyebrow">Cart</p>
         <h1>Your cart is empty</h1>
-        <p>Nothing here yet. Find something that earns its floor space.</p>
+        {adjustment ? (
+          <p role="status">{adjustment}</p>
+        ) : (
+          <p>Nothing here yet. Find something that earns its floor space.</p>
+        )}
         <Link href="/#catalog" className="button primary">
           <span>Shop equipment</span>
           <ArrowRight size={18} />
@@ -73,6 +99,17 @@ export function CartView() {
           {count} {count === 1 ? "item" : "items"}
         </p>
         <h1>Your cart</h1>
+
+        {checkoutCancelled && !adjustment && (
+          <p className="checkout-note" role="status">
+            Payment cancelled. Nothing was charged and your cart is as you left it.
+          </p>
+        )}
+        {adjustment && (
+          <p className="checkout-note checkout-note-error" role="alert">
+            {adjustment}
+          </p>
+        )}
 
         {failed && (
           <div className="inline-alert" role="alert">
@@ -96,26 +133,17 @@ export function CartView() {
         </div>
       </div>
 
-      <aside className="summary-panel">
-        <span>Subtotal</span>
-        <strong>{loading ? "…" : formatPrice(subtotal, currency)}</strong>
-        <p>Taxes and shipping are calculated during Stripe checkout.</p>
-        <button
-          type="button"
-          className="button primary"
-          disabled={loading || purchasable.length === 0}
-          onClick={() => setShowCheckoutNote(true)}
-        >
-          <CreditCard size={18} />
-          <span>Checkout</span>
-        </button>
-        {showCheckoutNote && (
-          // Replace with the Stripe session redirect once checkout exists.
-          <p className="checkout-note" role="status">
-            Checkout connects to Stripe in the next step of the project. Your cart is saved until then.
-          </p>
-        )}
-      </aside>
+      <CheckoutPanel
+        lines={purchasable.map((item) => ({
+          slug: item.slug,
+          name: item.product.name,
+          quantity: item.quantity
+        }))}
+        subtotalCents={subtotal}
+        currency={currency}
+        loading={loading}
+        onCartAdjusted={setAdjustment}
+      />
     </section>
   );
 }

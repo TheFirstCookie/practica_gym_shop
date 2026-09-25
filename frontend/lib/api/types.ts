@@ -63,3 +63,30 @@ export type ProductList<T = ProductSummary> = {
 export type ProductSort = "featured" | "price-asc" | "price-desc" | "newest";
 
 export type DataEnvelope<T> = { data: T };
+
+export type OrderStatus = "pending" | "paid" | "cancelled" | "fulfilled";
+
+export type CheckoutSession = {
+  sessionId: string;
+  /** Stripe-hosted payment page. */
+  url: string;
+};
+
+/** An order as the confirmation page sees it. */
+export type CheckoutOrder = {
+  id: string;
+  status: OrderStatus;
+  currency: string;
+  subtotalCents: number;
+  totalCents: number;
+  customerEmail: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  items: {
+    productId: string | null;
+    name: string;
+    unitPriceCents: number;
+    quantity: number;
+    lineTotalCents: number;
+  }[];
+};
