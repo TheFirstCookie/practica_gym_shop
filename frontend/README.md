@@ -48,13 +48,15 @@ app/
 │   │   └── search/
 │   ├── category/[slug]/  product/[slug]/  cart/
 │   ├── checkout/success/   # order confirmation after Stripe
-├── admin/                  # /admin: sign-in, products and orders
+├── admin/                  # /admin: dashboard, orders, products, categories, brands
 │   ├── layout.tsx          # session provider + guard, admin.css
 │   ├── admin-session.tsx   # Supabase session, admin check via the API
 │   ├── admin-shell.tsx     # redirects to /admin/login, admin header
 │   ├── actions.ts          # server action: refresh the storefront cache after edits
-│   ├── login/  products/new/  products/[id]/  orders/  orders/[id]/
-│   └── components/         # product table/editor, image upload, order table/detail, login form
+│   ├── page.tsx            # dashboard (sales, revenue chart, best sellers, low stock)
+│   ├── login/  products/  products/new/  products/[id]/  orders/  orders/[id]/
+│   ├── categories/  brands/
+│   └── components/         # tables, editors, dashboard + chart, image upload (resizes first)
 ├── components/             # storefront components
 └── fonts/                  # self-hosted Anton + Archivo
 lib/
@@ -62,7 +64,7 @@ lib/
 │   ├── client.ts           # fetch wrapper, ApiError
 │   ├── catalog.ts          # public reads (cached 60 s, tag "catalog")
 │   ├── checkout.ts         # start / look up / abandon a Stripe checkout
-│   ├── admin.ts            # admin calls: products, uploads, orders (token required, never cached)
+│   ├── admin.ts            # admin calls (token required, never cached)
 │   └── types.ts            # API response shapes
 ├── supabase/client.ts      # browser client for admin sign-in and uploads
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
@@ -110,9 +112,19 @@ Open `/admin` and sign in with the Supabase account that has the admin role (see
 README for creating it). Anyone else is sent to the login page or told they lack access,
 and the API rejects their requests regardless of what the UI shows.
 
-- **Products** (`/admin`): search, create, edit, upload photos, hide from or restore to the shop.
+- **Dashboard** (`/admin`): revenue for the last 7, 30 or 90 days against the period
+  before, paid orders, orders waiting to ship, a daily revenue chart (hover or tab through
+  the columns, or open it as a table), best sellers, low-stock products and recent orders.
 - **Orders** (`/admin/orders`): opens on *To ship* (paid orders). Search by email, name or
   order number, mark orders as shipped (with undo), and open an order for its items,
   shipping address (with a copy button for labels), timeline and a link to the payment in
   Stripe. *Awaiting payment* are checkouts still open on Stripe; *Cancelled* ones expired
   or were abandoned, and their stock was put back.
+- **Refunds**: an order page can refund the full amount through Stripe, after a
+  confirmation step. Putting the items back in stock is a separate choice (ticked by
+  default for unshipped orders), and can also be done later when a parcel comes back.
+- **Products** (`/admin/products`): search, create, edit, upload photos, hide from or
+  restore to the shop. Photos are resized in the browser before upload (longest side
+  1600px, WebP), so a 10 MB phone photo becomes a few hundred KB.
+- **Categories** and **Brands**: add, rename, change a category's tile colour and order,
+  and delete ones no product uses. Changes show on the storefront right away.

@@ -794,10 +794,542 @@
   font-weight: 800;
 }
 
+.order-badge[data-status="refunded"] {
+  border-color: rgba(123, 145, 255, 0.45);
+  color: var(--calm);
+}
+
+/* Shared: panel headings, intro copy, danger button, inline confirm */
+
+.admin-intro {
+  max-width: 720px;
+  margin: -8px 0 20px;
+  color: var(--body-text);
+  line-height: 1.55;
+}
+
+.admin-panel-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.admin-panel-heading small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.admin-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  background: var(--hot);
+  border: 0;
+  color: #1a0503;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.admin-danger-button:hover:not(:disabled) {
+  background: #ff6a5c;
+}
+
+.admin-danger-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.admin-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-confirm .admin-danger-button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+}
+
+.admin-row-actions button:disabled:not([aria-busy]) {
+  cursor: not-allowed;
+}
+
+/* Categories and brands */
+
+.admin-taxonomy-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 2fr) minmax(160px, 2fr) auto;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.admin-taxonomy-form:has(.admin-accent-field) {
+  grid-template-columns: minmax(160px, 2fr) minmax(160px, 2fr) minmax(150px, 1.2fr) 90px auto;
+}
+
+.admin-taxonomy-form-inline {
+  margin: 0;
+  padding: 6px 0;
+}
+
+.admin-taxonomy-actions {
+  display: flex;
+  gap: 8px;
+  /* Lines the buttons up with the inputs, below the labels. */
+  padding-top: 22px;
+}
+
+.admin-taxonomy-form-error {
+  grid-column: 1 / -1;
+}
+
+.admin-color-input {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-color-input input[type="color"] {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.admin-taxonomy-table {
+  min-width: 620px;
+}
+
+.admin-taxonomy-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-taxonomy-name strong {
+  display: block;
+}
+
+.admin-taxonomy-name small {
+  color: var(--muted);
+}
+
+.admin-swatch {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.admin-taxonomy-editing td {
+  background: var(--surface-2);
+}
+
+/* Order refunds */
+
+.admin-refund {
+  justify-items: start;
+}
+
+.admin-refund p {
+  margin: 0;
+}
+
+.admin-refund-confirm {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 14px;
+  background: rgba(255, 77, 61, 0.08);
+  border-left: 4px solid var(--hot);
+}
+
+.admin-refund-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Dashboard */
+
+.admin-dashboard-body {
+  display: grid;
+  gap: 20px;
+  transition: opacity 120ms ease;
+}
+
+/* A new period is loading: keep the old numbers on screen, dimmed. */
+.admin-dashboard-body[data-stale] {
+  opacity: 0.55;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-stat {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.admin-stat-hero {
+  border-top: 3px solid var(--brand);
+}
+
+.admin-stat-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.admin-stat-value {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.admin-stat-hero .admin-stat-value {
+  font-size: 2.4rem;
+}
+
+.admin-stat-note,
+.admin-stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.admin-stat-change[data-direction="up"] {
+  color: var(--green);
+}
+
+.admin-stat-change[data-direction="down"] {
+  color: var(--hot);
+}
+
+.admin-stat-link:hover {
+  border-color: var(--brand);
+}
+
+.admin-stat-link[data-attention] .admin-stat-value {
+  color: var(--brand);
+}
+
+.admin-dashboard-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-rank-list,
+.admin-stock-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-rank-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  font-size: 0.9rem;
+}
+
+.admin-rank-name {
+  overflow: hidden;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-rank-name a:hover {
+  color: var(--brand);
+}
+
+.admin-rank-value {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.admin-rank-value strong {
+  color: var(--text);
+}
+
+.admin-rank-meter {
+  grid-column: 1 / -1;
+  height: 6px;
+  background: var(--surface-2);
+}
+
+.admin-rank-meter span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: 0 3px 3px 0;
+}
+
+.admin-stock-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.admin-stock-list .admin-product-cell {
+  min-width: 0;
+}
+
+.admin-stock-list .admin-product-cell strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-stock-count {
+  flex: none;
+  color: var(--gold);
+  font-weight: 800;
+}
+
+.admin-stock-count[data-out] {
+  color: var(--hot);
+}
+
+.admin-table-flat {
+  background: none;
+  border: 0;
+}
+
+.admin-table-flat .admin-table {
+  min-width: 520px;
+}
+
+.admin-table-flat .admin-table th,
+.admin-table-flat .admin-table td {
+  padding-left: 0;
+}
+
+/* Revenue chart: one column per day, a hairline grid, labels in muted text. */
+
+.revenue-chart {
+  margin: 0;
+}
+
+.revenue-chart-plot {
+  position: relative;
+  height: 220px;
+  margin: 12px 0 0 56px;
+}
+
+.revenue-chart-grid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.revenue-chart-gridline {
+  position: relative;
+  height: 0;
+  border-top: 1px solid var(--line);
+}
+
+.revenue-chart-gridline span {
+  position: absolute;
+  top: -0.65em;
+  right: calc(100% + 10px);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.revenue-chart-bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  /* The 2px surface gap between neighbouring columns. */
+  gap: 2px;
+}
+
+.revenue-chart-slot {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+  outline: none;
+}
+
+.revenue-chart-slot[data-active] {
+  background: var(--brand-soft);
+}
+
+.revenue-chart-slot:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+
+.revenue-chart-bar {
+  width: 100%;
+  max-width: 24px;
+  background: var(--brand);
+  /* Rounded at the data end, square on the baseline. */
+  border-radius: 4px 4px 0 0;
+}
+
+.revenue-chart-slot[data-active] .revenue-chart-bar {
+  background: var(--brand-hover);
+}
+
+.revenue-chart-bar[data-empty] {
+  display: none;
+}
+
+.revenue-chart-tooltip {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  min-width: 120px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.revenue-chart-tooltip[data-edge="start"] {
+  transform: translateX(-12px);
+}
+
+.revenue-chart-tooltip[data-edge="end"] {
+  transform: translateX(calc(-100% + 12px));
+}
+
+.revenue-chart-tooltip strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.revenue-chart-tooltip span,
+.revenue-chart-tooltip small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.revenue-chart-axis {
+  display: flex;
+  gap: 2px;
+  margin: 8px 0 0 56px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.revenue-chart-axis span {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* The last date sits flush right and runs leftwards, never past the chart's edge. */
+.revenue-chart-axis span:last-child {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.revenue-chart-table {
+  margin-top: 14px;
+  font-size: 0.85rem;
+}
+
+.revenue-chart-table summary {
+  width: fit-content;
+  color: var(--nav-text);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.revenue-chart-table table {
+  width: 100%;
+  max-width: 480px;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+.revenue-chart-table th,
+.revenue-chart-table td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.revenue-chart-table th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.revenue-chart-table .numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .admin-taxonomy-form:has(.admin-accent-field) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 900px) {
   .admin-form-grid,
-  .admin-order-grid {
+  .admin-order-grid,
+  .admin-dashboard-columns {
     grid-template-columns: 1fr;
+  }
+
+  .admin-taxonomy-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .admin-taxonomy-actions {
+    grid-column: 1 / -1;
+    padding-top: 0;
   }
 }
 
@@ -810,6 +1342,32 @@
   .admin-nav {
     order: 3;
     flex-basis: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Two small tiles side by side; the headline and the last tile take the full width. */
+  .admin-stat-hero,
+  .admin-stat:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .admin-stat {
+    padding: 14px 16px;
+  }
+
+  .admin-stat-value {
+    font-size: 1.5rem;
+  }
+
+  .admin-taxonomy-form,
+  .admin-taxonomy-form:has(.admin-accent-field) {
+    grid-template-columns: 1fr;
+  }
+
+  .revenue-chart-plot,
+  .revenue-chart-axis {
+    margin-left: 44px;
   }
 
   .admin-account span {

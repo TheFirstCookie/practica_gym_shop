@@ -7,7 +7,8 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Awaiting payment",
   paid: "To ship",
   fulfilled: "Shipped",
-  cancelled: "Cancelled"
+  cancelled: "Cancelled",
+  refunded: "Refunded"
 };
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {

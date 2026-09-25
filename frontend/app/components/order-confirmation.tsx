@@ -123,6 +123,20 @@ export function OrderConfirmation({ sessionId }: { sessionId: string }) {
     );
   }
 
+  if (order.status === "refunded") {
+    return (
+      <section className="empty-page">
+        <p className="eyebrow">Order {order.id.slice(0, 8).toUpperCase()}</p>
+        <h1>This order was refunded</h1>
+        <p>The full amount went back to the card you paid with. It can take a few days to show up.</p>
+        <Link href="/#catalog" className="button primary">
+          <ShoppingBag size={18} />
+          <span>Keep shopping</span>
+        </Link>
+      </section>
+    );
+  }
+
   const price = (cents: number) => formatPrice(cents, order.currency);
   const reference = order.id.slice(0, 8).toUpperCase();
 

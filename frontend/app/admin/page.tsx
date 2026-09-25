@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ProductTable } from "./components/product-table";
+import { DashboardView } from "./components/dashboard-view";
 
 export const metadata: Metadata = {
-  title: "Products"
+  title: "Dashboard"
 };
 
-export default function AdminProductsPage() {
-  // The table keeps its filters in the URL (useSearchParams), which needs a Suspense boundary.
+export default function AdminDashboardPage() {
+  // The reporting window lives in the URL (?days=7), read with useSearchParams.
   return (
     <Suspense>
-      <ProductTable />
+      <DashboardView />
     </Suspense>
   );
 }

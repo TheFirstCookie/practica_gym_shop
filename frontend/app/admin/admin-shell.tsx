@@ -8,6 +8,14 @@ import { useAdminSession } from "./admin-session";
 
 const LOGIN_PATH = "/admin/login";
 
+const NAV = [
+  { href: "/admin", label: "Dashboard", match: (path: string) => path === "/admin" },
+  { href: "/admin/orders", label: "Orders", match: (path: string) => path.startsWith("/admin/orders") },
+  { href: "/admin/products", label: "Products", match: (path: string) => path.startsWith("/admin/products") },
+  { href: "/admin/categories", label: "Categories", match: (path: string) => path.startsWith("/admin/categories") },
+  { href: "/admin/brands", label: "Brands", match: (path: string) => path.startsWith("/admin/brands") }
+];
+
 /**
  * Gatekeeper and chrome for every /admin page except the login. Hiding pages is only
  * for convenience: the API checks the admin role on every request regardless.
@@ -17,7 +25,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { state, signOut, recheck } = useAdminSession();
   const onLogin = pathname === LOGIN_PATH;
-  const section = pathname.startsWith("/admin/orders") ? "orders" : "products";
+  const section = NAV.find((item) => item.match(pathname))?.href;
 
   useEffect(() => {
     if (!onLogin && state.status === "signed-out") {
@@ -49,12 +57,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </span>
         </Link>
         <nav className="admin-nav" aria-label="Admin">
-          <Link href="/admin" aria-current={section === "products" ? "page" : undefined}>
-            Products
-          </Link>
-          <Link href="/admin/orders" aria-current={section === "orders" ? "page" : undefined}>
-            Orders
-          </Link>
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} aria-current={section === item.href ? "page" : undefined}>
+              {item.label}
+            </Link>
+          ))}
           <Link href="/" target="_blank" rel="noreferrer">
             <span>View shop</span>
             <ArrowUpRight size={15} />

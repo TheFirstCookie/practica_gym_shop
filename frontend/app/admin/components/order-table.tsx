@@ -22,6 +22,7 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
   { value: "fulfilled", label: "Shipped" },
   { value: "pending", label: "Awaiting payment" },
   { value: "cancelled", label: "Cancelled" },
+  { value: "refunded", label: "Refunded" },
   { value: "all", label: "All" }
 ];
 

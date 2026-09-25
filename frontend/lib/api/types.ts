@@ -64,7 +64,7 @@ export type ProductSort = "featured" | "price-asc" | "price-desc" | "newest";
 
 export type DataEnvelope<T> = { data: T };
 
-export type OrderStatus = "pending" | "paid" | "cancelled" | "fulfilled";
+export type OrderStatus = "pending" | "paid" | "cancelled" | "fulfilled" | "refunded";
 
 export type CheckoutSession = {
   sessionId: string;
@@ -122,10 +122,16 @@ export type AdminOrder = AdminOrderSummary & {
   subtotalCents: number;
   shippingAddress: ShippingAddress | null;
   cancelledAt: string | null;
+  refundedAt: string | null;
+  /** When a refunded order's items went back in stock (null: they didn't, yet). */
+  restockedAt: string | null;
+  /** When the confirmation email went out (null: not sent, e.g. email isn't set up). */
+  confirmationEmailSentAt: string | null;
   updatedAt: string;
   stripe: {
     checkoutSessionId: string | null;
     paymentIntentId: string | null;
+    refundId: string | null;
     /** The payment in the Stripe dashboard, when there is one. */
     dashboardUrl: string | null;
   };
@@ -149,4 +155,62 @@ export type AdminOrderList = {
     /** Orders per status across the whole shop, for the tabs. */
     counts: OrderStatusCounts;
   };
+};
+
+/** A category as the admin panel sees it. */
+export type AdminCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  /** Tile colour on the storefront, "#rrggbb". */
+  accent: string;
+  /** Lower comes first. */
+  sortOrder: number;
+  /** Every product in it, hidden ones included (they block deleting). */
+  productCount: number;
+  /** Products the storefront shows. */
+  activeProductCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminBrand = {
+  id: string;
+  name: string;
+  slug: string;
+  productCount: number;
+  activeProductCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DashboardDays = 7 | 30 | 90;
+
+export type Dashboard = {
+  currency: string;
+  days: DashboardDays;
+  /** The last `days` days (today included), and the same span before that. */
+  sales: {
+    revenueCents: number;
+    orderCount: number;
+    averageOrderCents: number;
+    previousRevenueCents: number;
+    previousOrderCount: number;
+    allTimeRevenueCents: number;
+  };
+  orders: { toShip: number; awaitingPayment: number };
+  /** One entry per UTC day, oldest first; `date` is "YYYY-MM-DD". */
+  daily: { date: string; revenueCents: number; orderCount: number }[];
+  topProducts: { productId: string | null; name: string; units: number; revenueCents: number }[];
+  lowStock: { id: string; name: string; slug: string; stock: number; image: string | null }[];
+  recentOrders: {
+    id: string;
+    status: OrderStatus;
+    customerName: string | null;
+    customerEmail: string | null;
+    totalCents: number;
+    currency: string;
+    createdAt: string;
+  }[];
+  lowStockThreshold: number;
 };

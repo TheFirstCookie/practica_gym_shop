@@ -66,7 +66,7 @@ export function ProductEditor({ productId }: { productId?: string }) {
 
   return (
     <section className="admin-section admin-editor">
-      <Link href="/admin" className="admin-back-link">
+      <Link href="/admin/products" className="admin-back-link">
         <ArrowLeft size={15} />
         <span>All products</span>
       </Link>
@@ -134,7 +134,7 @@ function ProductForm({ productId, data }: ProductFormProps) {
         productId ? updateProduct(token, productId, result.input) : createProduct(token, result.input)
       );
       await refreshShop();
-      router.push(`/admin?notice=${isNew ? "created" : "updated"}`);
+      router.push(`/admin/products?notice=${isNew ? "created" : "updated"}`);
     } catch (error) {
       setSaving(false);
       if (error instanceof ApiError && error.status === 409) {
@@ -318,7 +318,7 @@ function ProductForm({ productId, data }: ProductFormProps) {
       </div>
 
       <div className="admin-form-footer">
-        <Link href="/admin" className="button secondary">
+        <Link href="/admin/products" className="button secondary">
           Cancel
         </Link>
         <FormActions saving={saving} />
