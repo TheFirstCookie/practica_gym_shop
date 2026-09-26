@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/app/components/customer-session", { spy: true });
 
-const customer = { id: "u1", email: "sam@example.com", fullName: "Sam Shopper", pendingEmail: null };
+const customer = { id: "u1", email: "sam@example.com", fullName: "Sam Shopper", pendingEmail: null, isAdmin: false };
 
 function setup(overrides: Partial<ReturnType<typeof useCustomerSession>> = {}, state?: CustomerSessionState) {
   const session = {

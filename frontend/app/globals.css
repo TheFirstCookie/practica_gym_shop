@@ -191,6 +191,10 @@ button.account-pill {
   width: 250px;
 }
 
+.dropdown-item-admin {
+  color: var(--brand);
+}
+
 .account-dropdown-email {
   margin: -4px 18px 12px;
   overflow: hidden;

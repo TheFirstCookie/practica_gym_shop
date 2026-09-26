@@ -436,10 +436,6 @@
   display: inline-flex;
 }
 
-.admin-login .brand {
-  margin-bottom: 24px;
-}
-
 .admin-inline-card {
   display: flex;
   flex-wrap: wrap;

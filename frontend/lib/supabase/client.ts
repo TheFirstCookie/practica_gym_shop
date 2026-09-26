@@ -6,48 +6,40 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 // what it can read, and it can't write anything in this project.
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-const clients = new Map<string, SupabaseClient>();
+const STORAGE_KEY = "forgefit-auth";
+/** Where earlier versions kept separate shop and admin sessions; cleared on first load. */
+const OLD_STORAGE_KEYS = ["forgefit-admin-auth", "forgefit-customer-auth"];
 
-function getClient(storageKey: string, detectSessionInUrl: boolean): SupabaseClient | null {
-  if (!url || !publishableKey) {
-    return null;
-  }
-
-  let client = clients.get(storageKey);
-  if (!client) {
-    client = createClient(url, publishableKey, {
-      auth: { persistSession: true, autoRefreshToken: true, storageKey, detectSessionInUrl }
-    });
-    clients.set(storageKey, client);
-  }
-  return client;
-}
+let client: SupabaseClient | null | undefined;
+let landing: AuthLanding | null = null;
 
 /**
- * Browser Supabase client for the admin area (sign-in and photo uploads). Returns null
- * when the env vars are missing, so the admin can explain what to set. It never reads
- * sessions from email links: those are the shopper client's.
+ * The one browser Supabase client, shared by the shop and /admin: signing in anywhere signs
+ * you in everywhere, and admins are ordinary accounts with the admin role (the API checks
+ * it). It also picks up sessions from email links (sign-up confirmation, sign-in link,
+ * password reset). Null when the env vars are missing, so pages can explain what to set.
  */
 export function getSupabaseBrowserClient(): SupabaseClient | null {
-  return getClient("forgefit-admin-auth", false);
-}
+  if (client !== undefined) return client;
+  if (!url || !publishableKey) return (client = null);
 
-let landing: AuthLanding | null | undefined;
-
-/**
- * Browser Supabase client for shopper accounts. A separate session from the admin's, so
- * signing in to the shop and to /admin don't affect each other. Null when not configured.
- * It picks up sessions from email links (sign-up confirmation, sign-in link, password reset).
- */
-export function getCustomerAuthClient(): SupabaseClient | null {
-  // Read the email-link details before the client consumes and clears them.
-  if (landing === undefined && typeof window !== "undefined") {
+  if (typeof window !== "undefined") {
+    // Read the email-link details before the client consumes and clears them.
     landing = parseAuthLanding(window.location.href);
+    try {
+      OLD_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(key));
+    } catch {
+      // Storage blocked (private mode): nothing was saved there anyway.
+    }
   }
-  return getClient("forgefit-customer-auth", true);
+
+  client = createClient(url, publishableKey, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: STORAGE_KEY, detectSessionInUrl: true }
+  });
+  return client;
 }
 
 /** What the email link that opened this page was for; null for an ordinary visit. */
 export function getAuthLanding(): AuthLanding | null {
-  return landing ?? null;
+  return landing;
 }

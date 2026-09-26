@@ -42,9 +42,13 @@ export function AuthForm() {
   const [sent, setSent] = useState<Sent | null>(null);
 
   // Signed in (just now, or already when the page opened): carry on where they were.
+  // Admins who didn't come from a particular page go straight to the dashboard.
+  const cameFrom = searchParams.get("next");
+  const isAdmin = state.status === "signed-in" && state.customer.isAdmin;
   useEffect(() => {
-    if (state.status === "signed-in") router.replace(next);
-  }, [state.status, next, router]);
+    if (state.status !== "signed-in") return;
+    router.replace(isAdmin && !cameFrom ? "/admin" : next);
+  }, [state.status, isAdmin, cameFrom, next, router]);
 
   function switchMode(value: Mode) {
     setMode(value);

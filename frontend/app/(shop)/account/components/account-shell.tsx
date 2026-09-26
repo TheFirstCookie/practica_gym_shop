@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { LayoutDashboard } from "lucide-react";
 import { ACCOUNT_LINKS, firstName } from "@/app/components/account-link";
 import { signInHref, useCustomerSession } from "@/app/components/customer-session";
 import { LinkNotice } from "./link-notice";
@@ -38,8 +39,16 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
   return (
     <section className="account-page">
       <div className="account-heading">
-        <p className="eyebrow">Your account</p>
-        <h1>Hi, {firstName(state.customer)}</h1>
+        <div>
+          <p className="eyebrow">Your account</p>
+          <h1>Hi, {firstName(state.customer)}</h1>
+        </div>
+        {state.customer.isAdmin && (
+          <Link href="/admin" className="button secondary">
+            <LayoutDashboard size={17} aria-hidden="true" />
+            <span>Admin dashboard</span>
+          </Link>
+        )}
       </div>
       <LinkNotice />
       <nav className="account-tabs" aria-label="Account">

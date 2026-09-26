@@ -82,15 +82,32 @@ describe("AuthForm", () => {
 
   it("returns a signed-in shopper to where they came from", () => {
     search = new URLSearchParams("next=/product/mat");
-    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null, pendingEmail: null } });
+    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null, pendingEmail: null, isAdmin: false } });
     render(<AuthForm />);
     expect(replace).toHaveBeenCalledWith("/product/mat");
   });
 
   it("never redirects to another website", () => {
     search = new URLSearchParams("next=//evil.example/steal");
-    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null, pendingEmail: null } });
+    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null, pendingEmail: null, isAdmin: false } });
     render(<AuthForm />);
     expect(replace).toHaveBeenCalledWith("/account");
+  });
+});
+
+describe("AuthForm for admins", () => {
+  const admin = { id: "a1", email: "admin@example.com", fullName: "Admin", pendingEmail: null, isAdmin: true };
+
+  it("takes an admin straight to the dashboard", () => {
+    setup({ status: "signed-in", customer: admin });
+    render(<AuthForm />);
+    expect(replace).toHaveBeenCalledWith("/admin");
+  });
+
+  it("returns an admin to the page they came from", () => {
+    search = new URLSearchParams("next=/admin/orders");
+    setup({ status: "signed-in", customer: admin });
+    render(<AuthForm />);
+    expect(replace).toHaveBeenCalledWith("/admin/orders");
   });
 });

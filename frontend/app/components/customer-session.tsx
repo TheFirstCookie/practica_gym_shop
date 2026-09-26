@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { AuthError, Session } from "@supabase/supabase-js";
 import type { AuthLanding } from "@/lib/auth-landing";
-import { getAuthLanding, getCustomerAuthClient } from "@/lib/supabase/client";
+import { getAuthLanding, getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export type Customer = {
   id: string;
@@ -12,6 +12,11 @@ export type Customer = {
   fullName: string | null;
   /** A new address waiting for its confirmation link to be clicked. */
   pendingEmail: string | null;
+  /**
+   * Has the admin role, so the shop links to /admin. Only for showing the way there: the
+   * API checks the role itself on every admin request.
+   */
+  isAdmin: boolean;
 };
 
 export type CustomerSessionState =
@@ -62,7 +67,13 @@ function toCustomer(session: Session | null): Customer | null {
   if (!session) return null;
   const { user } = session;
   const name = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "";
-  return { id: user.id, email: user.email ?? "", fullName: name || null, pendingEmail: user.new_email ?? null };
+  return {
+    id: user.id,
+    email: user.email ?? "",
+    fullName: name || null,
+    pendingEmail: user.new_email ?? null,
+    isAdmin: user.app_metadata?.role === "admin"
+  };
 }
 
 function toState(session: Session | null): CustomerSessionState {
@@ -114,12 +125,12 @@ function describe(error: AuthError): string {
 }
 
 /**
- * The shopper's own sign-in, kept apart from the admin's session (see lib/supabase/client).
+ * The shopper's sign-in (the same session /admin uses; see lib/supabase/client).
  * Supabase stores the session in the browser and sends the account emails (confirmation,
  * sign-in links, password resets); the API checks the token on every call.
  */
 export function CustomerSessionProvider({ children }: { children: React.ReactNode }) {
-  const supabase = getCustomerAuthClient();
+  const supabase = getSupabaseBrowserClient();
   const [state, setState] = useState<CustomerSessionState>(
     supabase ? { status: "loading" } : { status: "unconfigured" }
   );

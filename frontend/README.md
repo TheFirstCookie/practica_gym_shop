@@ -62,10 +62,10 @@ app/
 ├── admin/                  # /admin: dashboard, orders, products, categories, brands, reviews
 │   ├── layout.tsx          # session provider + guard, admin.css
 │   ├── admin-session.tsx   # Supabase session, admin check via the API
-│   ├── admin-shell.tsx     # redirects to /admin/login, admin header
+│   ├── admin-shell.tsx     # sends signed-out visitors to the shop's sign-in, admin header
 │   ├── actions.ts          # server action: refresh the storefront cache after edits
 │   ├── page.tsx            # dashboard (sales, revenue chart, best sellers, low stock)
-│   ├── login/  products/  products/new/  products/[id]/  orders/  orders/[id]/
+│   ├── products/  products/new/  products/[id]/  orders/  orders/[id]/
 │   ├── categories/  brands/  reviews/
 │   └── components/         # tables, editors, dashboard + chart, image upload (resizes first)
 ├── components/             # storefront components
@@ -82,7 +82,7 @@ lib/
 │   ├── reviews.ts          # product reviews and rating summaries
 │   ├── admin.ts            # admin calls (token required, never cached)
 │   └── types.ts            # API response shapes
-├── supabase/client.ts      # browser clients: admin (sign-in, uploads) and shopper, kept apart
+├── supabase/client.ts      # the one browser Supabase client (sign-in for shop + admin, uploads)
 ├── orders.ts               # order number and address formatting (account + admin)
 ├── auth-landing.ts         # reads what an email link (confirm, reset, sign-in) came back with
 ├── legal.ts                # the policy pages and their "last updated" date
@@ -183,8 +183,8 @@ Supabase Auth sends them; the pages here ask for them and handle the links that 
   "your email is confirmed" note. Trying to sign in unconfirmed offers to resend it.
 - **Sign-in link**: "Email me a sign-in link" on the sign-in page; existing accounts only,
   and the answer is the same for unknown addresses so the form can't reveal who shops here.
-- **Password reset**: `/account/forgot-password` sends the link (also linked from the admin
-  login); `/account/reset-password` sets the new password, or explains an expired link.
+- **Password reset**: `/account/forgot-password` sends the link; `/account/reset-password`
+  sets the new password, or explains an expired link.
 - **Email change**: from Settings; the new address shows as pending until confirmed.
 
 Supabase puts the link's details in the URL fragment and clears it once read, so
@@ -194,9 +194,13 @@ dashboard; see "Shopper accounts and account emails" in the API's README.
 
 ## Admin
 
-Open `/admin` and sign in with the Supabase account that has the admin role (see the API's
-README for creating it). Anyone else is sent to the login page or told they lack access,
-and the API rejects their requests regardless of what the UI shows.
+Admins sign in on the shop's normal sign-in page with the Supabase account that has the
+admin role (see the API's README for granting it). The shop and `/admin` share one session:
+an admin who signs in without coming from a particular page lands on `/admin`, and the
+header menu and the account page show an **Admin dashboard** link. Signing out in either
+place signs out of both. Anyone else who opens `/admin` is sent to sign in or told they lack
+access, and the API rejects their requests regardless of what the UI shows. The old
+`/admin/login` address redirects to the sign-in page (`next.config.mjs`).
 
 - **Search** (header, or press `Ctrl K` / `⌘ K` / `/` anywhere in the admin): finds orders
   by number, email or name, products, categories and brands, and jumps to admin pages.

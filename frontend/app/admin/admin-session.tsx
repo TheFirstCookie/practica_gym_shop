@@ -16,8 +16,6 @@ export type AdminSessionState =
 
 type AdminSessionValue = {
   state: AdminSessionState;
-  /** Resolves to an error message, or null on success. */
-  signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   /** A fresh access token for API calls (Supabase refreshes it when needed). */
   getToken: () => Promise<string>;
@@ -80,16 +78,6 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
     };
   }, [supabase, checkCount]);
 
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      if (!supabase) return "Sign-in isn't configured";
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (!error) return null;
-      return error.message === "Invalid login credentials" ? "Wrong email or password" : error.message;
-    },
-    [supabase]
-  );
-
   const signOut = useCallback(async () => {
     await supabase?.auth.signOut();
   }, [supabase]);
@@ -106,8 +94,8 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const value = useMemo(
-    () => ({ state, signIn, signOut, getToken, recheck }),
-    [state, signIn, signOut, getToken, recheck]
+    () => ({ state, signOut, getToken, recheck }),
+    [state, signOut, getToken, recheck]
   );
 
   return <AdminSessionContext.Provider value={value}>{children}</AdminSessionContext.Provider>;

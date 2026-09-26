@@ -2,9 +2,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CustomerSessionProvider, useCustomerSession } from "@/app/components/customer-session";
 import type { AuthLanding } from "@/lib/auth-landing";
-import { getAuthLanding, getCustomerAuthClient } from "@/lib/supabase/client";
+import { getAuthLanding, getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-vi.mock("@/lib/supabase/client", () => ({ getCustomerAuthClient: vi.fn(), getAuthLanding: vi.fn() }));
+vi.mock("@/lib/supabase/client", () => ({ getSupabaseBrowserClient: vi.fn(), getAuthLanding: vi.fn() }));
 
 type Listener = (event: string, session: unknown) => void;
 
@@ -32,7 +32,7 @@ function fakeAuth(initialSession: unknown) {
     signOut: vi.fn(async () => ok),
     getSession: vi.fn(async () => ({ data: { session: initialSession } }))
   };
-  vi.mocked(getCustomerAuthClient).mockReturnValue({ auth } as never);
+  vi.mocked(getSupabaseBrowserClient).mockReturnValue({ auth } as never);
   return { auth, emit: (event: string, value: unknown) => listener(event, value) };
 }
 
@@ -45,7 +45,7 @@ async function mount(landing: AuthLanding | null = null) {
 }
 
 beforeEach(() => {
-  vi.mocked(getCustomerAuthClient).mockReset();
+  vi.mocked(getSupabaseBrowserClient).mockReset();
 });
 
 describe("CustomerSessionProvider emails", () => {
@@ -130,6 +130,18 @@ describe("CustomerSessionProvider emails", () => {
 
     expect(result.current.recovering).toBe(false);
     expect(result.current.landing?.message).toMatch(/new password is saved/);
+  });
+
+  it("knows an admin from the role Supabase keeps in app_metadata", async () => {
+    fakeAuth({ ...session, user: { ...session.user, app_metadata: { role: "admin" } } });
+    const result = await mount();
+    expect(result.current.customer?.isAdmin).toBe(true);
+  });
+
+  it("treats everyone else as a shopper", async () => {
+    fakeAuth(session);
+    const result = await mount();
+    expect(result.current.customer?.isAdmin).toBe(false);
   });
 
   it("isn't in recovery mode after an ordinary sign-in", async () => {

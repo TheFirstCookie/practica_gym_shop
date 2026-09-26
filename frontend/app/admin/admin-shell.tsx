@@ -8,7 +8,8 @@ import { useAdminSession } from "./admin-session";
 import { AccountMenu } from "./components/account-menu";
 import { AdminSearch } from "./components/admin-search";
 
-const LOGIN_PATH = "/admin/login";
+/** Admins sign in on the shop's sign-in page, like everyone else, and come back here. */
+const signInPath = (next: string) => `/account/sign-in?next=${encodeURIComponent(next)}`;
 
 const NAV = [
   { href: "/admin", label: "Dashboard", match: (path: string) => path === "/admin" },
@@ -20,25 +21,18 @@ const NAV = [
 ];
 
 /**
- * Gatekeeper and chrome for every /admin page except the login. Hiding pages is only
- * for convenience: the API checks the admin role on every request regardless.
+ * Gatekeeper and chrome for every /admin page. Hiding pages is only for convenience: the API
+ * checks the admin role on every request regardless.
  */
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { state, signOut, recheck } = useAdminSession();
-  const onLogin = pathname === LOGIN_PATH;
   const section = NAV.find((item) => item.match(pathname))?.href;
 
   useEffect(() => {
-    if (!onLogin && state.status === "signed-out") {
-      router.replace(`${LOGIN_PATH}?next=${encodeURIComponent(pathname)}`);
-    }
-  }, [onLogin, state.status, pathname, router]);
-
-  if (onLogin) {
-    return <div className="admin-root admin-root-centered">{children}</div>;
-  }
+    if (state.status === "signed-out") router.replace(signInPath(pathname));
+  }, [state.status, pathname, router]);
 
   if (state.status !== "ready") {
     return (

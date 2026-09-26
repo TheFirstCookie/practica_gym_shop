@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { Heart, LogOut, Package, Settings, UserRound } from "lucide-react";
+import { Heart, LayoutDashboard, LogOut, Package, Settings, UserRound } from "lucide-react";
 import { signInHref, useCustomerSession, type Customer } from "./customer-session";
 import { useHoverMenu } from "./use-hover-menu";
 
@@ -69,6 +69,15 @@ export function AccountLink() {
             <p className="eyebrow">Signed in as</p>
             <p className="account-dropdown-email">{customer.email}</p>
             <ul>
+              {/* Admins sign in here like everyone else; this is their way into /admin. */}
+              {customer.isAdmin && (
+                <li>
+                  <Link href="/admin" className="dropdown-item dropdown-item-admin" onClick={() => setOpen(false)}>
+                    <span>Admin dashboard</span>
+                    <LayoutDashboard size={16} aria-hidden="true" />
+                  </Link>
+                </li>
+              )}
               {ACCOUNT_LINKS.map(({ href, label, icon: Icon }) => (
                 <li key={href}>
                   <Link
