@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { LogIn, MailCheck, UserPlus } from "lucide-react";
 import { useCustomerSession } from "@/app/components/customer-session";
+import { TextField } from "./text-field";
 
 type Mode = "sign-in" | "create";
 
@@ -126,41 +127,35 @@ export function AuthForm() {
 
       <form className="account-form" onSubmit={handleSubmit}>
         {creating && (
-          <label className="account-field">
-            <span>Name</span>
-            <input
-              type="text"
-              autoComplete="name"
-              required
-              maxLength={60}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-            <small>Reviews show your first name and last initial.</small>
-          </label>
+          <TextField
+            label="Name"
+            hint="Reviews show your first name and last initial."
+            type="text"
+            autoComplete="name"
+            required
+            maxLength={60}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
         )}
-        <label className="account-field">
-          <span>Email</span>
-          <input
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </label>
-        <label className="account-field">
-          <span>Password</span>
-          <input
-            type="password"
-            autoComplete={creating ? "new-password" : "current-password"}
-            required
-            minLength={creating ? MIN_PASSWORD : undefined}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          {creating && <small>At least {MIN_PASSWORD} characters.</small>}
-        </label>
+        <TextField
+          label="Email"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+        <TextField
+          label="Password"
+          hint={creating ? `At least ${MIN_PASSWORD} characters.` : undefined}
+          type="password"
+          autoComplete={creating ? "new-password" : "current-password"}
+          required
+          minLength={creating ? MIN_PASSWORD : undefined}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
 
         {error && (
           <p className="account-error" role="alert">
@@ -175,6 +170,13 @@ export function AuthForm() {
           </span>
         </button>
       </form>
+
+      {creating && (
+        <p className="auth-guest">
+          By creating an account you accept the <Link href="/terms">terms</Link> and the{" "}
+          <Link href="/privacy">privacy policy</Link>.
+        </p>
+      )}
 
       <p className="auth-guest">
         No account needed to buy: <Link href="/cart">check out as a guest</Link>.

@@ -31,6 +31,8 @@ works for guests: the sign-in button and wishlist hearts are simply hidden.
 | `npm run build`     | Production build          |
 | `npm run lint`      | ESLint                    |
 | `npm run typecheck` | TypeScript, no output     |
+| `npm test`          | Test suite (Vitest)       |
+| `npm run test:watch`| Tests on every save       |
 
 ## Structure
 
@@ -50,6 +52,7 @@ app/
 │   │   └── search/
 │   ├── category/[slug]/  product/[slug]/  cart/
 │   ├── checkout/success/   # order confirmation after Stripe
+│   ├── (legal)/            # /shipping-returns, /terms, /privacy (legal.css, shared frame)
 │   └── account/            # shopper accounts (noindex, account.css)
 │       ├── sign-in/        # sign in / create account, returns to ?next=
 │       ├── page.tsx        # order history;  orders/[id]/ order detail
@@ -80,12 +83,16 @@ lib/
 │   └── types.ts            # API response shapes
 ├── supabase/client.ts      # browser clients: admin (sign-in, uploads) and shopper, kept apart
 ├── orders.ts               # order number and address formatting (account + admin)
+├── legal.ts                # the policy pages and their "last updated" date
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
 ├── pending-checkout.ts     # remembers the open Stripe session for the "back" link
 ├── filters.ts              # URL params -> filters (?brand, ?sort, ?page, ?q)
 ├── site.ts                 # site name, URL and description for SEO
 ├── format.ts               # prices in cents -> "$29.99"
-└── store-info.ts           # shipping/returns/warranty copy
+└── store-info.ts           # contact email, shipping/returns promises (FAQ, perks, policies)
+tests/
+├── lib/                    # formatting, URL filters, cart storage, API client
+└── components/             # review form, wishlist button, sign-in form, policy pages, footer
 ```
 
 ## How data flows
@@ -123,9 +130,35 @@ lib/
 - Unknown products and categories answer with a real **404**. That's why the loading
   skeleton lives in `(browse)/` and not around product and category pages: once a page
   starts streaming its skeleton, the status code is already sent as 200.
-- `/sitemap.xml` lists the home page, categories and every product (with photos);
+- `/sitemap.xml` lists the home page, the policy pages, categories and every product (with photos);
   `/robots.txt` points to it and keeps crawlers out of `/admin`, `/account`, `/cart` and `/checkout`.
   Search results and the cart carry `noindex`.
+
+## Policies
+
+`/shipping-returns`, `/terms` and `/privacy` are linked from the footer, the FAQ, checkout
+and the sign-up form. The contact email and the shipping and returns promises they quote
+live in `lib/store-info.ts`, shared with the FAQ and the perks band, so the site can't
+contradict itself. Returns are handled by email: the shopper writes with their order
+number, and the admin refunds (and restocks) the order from `/admin/orders`. Each page
+opens with a note that the shop is a portfolio project in Stripe test mode; remove it from
+`app/(shop)/(legal)/components/legal-page.tsx` if the shop ever trades for real, and set a
+real contact address. The text is a sensible template, not legal advice.
+
+## Tests
+
+```bash
+npm test
+```
+
+Vitest with jsdom and Testing Library. No API or Supabase is needed: tests stub `fetch`,
+`next/navigation` and the session hooks. They cover price and date formatting, URL filters,
+the localStorage cart (tampered or corrupt data, other tabs), the API client (query
+building, tokens, error shapes, network failures), checkout's stock-problem parsing, the
+review form, the wishlist heart (signed out, signed in, failure), the sign-in and sign-up
+form (including `?next=` never leaving the site), the policy pages, the footer links and
+the sitemap. GitHub Actions runs lint, typecheck, tests and a build on every push and pull
+request that touches `frontend/` (`../.github/workflows/frontend.yml`).
 
 ## Shopper accounts
 

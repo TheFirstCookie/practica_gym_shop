@@ -1,5 +1,17 @@
-// Store-wide promises shown in the marquee and the perks band.
-// Keep these in line with the FAQ copy so the site never contradicts itself.
+// Store-wide promises shown in the marquee, the perks band, the FAQ and the policy pages.
+// Keep them in one place so the site never contradicts itself.
+
+/** Where shoppers write for returns, cancellations and privacy requests. */
+export const STORE_EMAIL = "hello@forgefit.example";
+export const STORE_MAILTO = `mailto:${STORE_EMAIL}`;
+
+export const SHIPPING_DAYS = 15;
+export const RETURN_DAYS = 30;
+
+/** Countries Stripe Checkout accepts a delivery address in (see the API's checkout gateway). */
+export const SHIPPING_REGIONS =
+  "the EU, the United Kingdom, Switzerland, Norway, Moldova, the United States and Canada";
+
 export type StorePerk = {
   id: "shipping" | "returns" | "warranty";
   title: string;
@@ -9,13 +21,13 @@ export type StorePerk = {
 export const storePerks: StorePerk[] = [
   {
     id: "shipping",
-    title: "15-day shipping",
-    detail: "Every order arrives within 15 days. Freight pieces get a booked slot."
+    title: `${SHIPPING_DAYS}-day shipping`,
+    detail: `Every order arrives within ${SHIPPING_DAYS} days. Freight pieces get a booked slot.`
   },
   {
     id: "returns",
-    title: "30-day returns",
-    detail: "Unused and in its box? Send it back within 30 days."
+    title: `${RETURN_DAYS}-day returns`,
+    detail: `Unused and in its box? Send it back within ${RETURN_DAYS} days.`
   },
   {
     id: "warranty",

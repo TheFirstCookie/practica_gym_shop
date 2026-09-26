@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { getNavCategories } from "@/lib/api/catalog";
+import { STORE_MAILTO } from "@/lib/store-info";
 
 const helpLinks = [
   { label: "FAQs", href: "/#faq" },
-  { label: "Your cart", href: "/cart" },
-  { label: "Contact us", href: "mailto:hello@forgefit.example" }
+  { label: "Shipping & returns", href: "/shipping-returns" },
+  { label: "Your account", href: "/account" },
+  { label: "Contact us", href: STORE_MAILTO }
+];
+
+const legalLinks = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" }
 ];
 
 export async function SiteFooter() {
@@ -66,6 +73,13 @@ export async function SiteFooter() {
 
       <div className="footer-bottom">
         <p>© {new Date().getFullYear()} ForgeFit Supply</p>
+        <nav className="footer-legal" aria-label="Legal">
+          {legalLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
+        </nav>
         <a href="#" className="back-to-top">
           <span>Back to top</span>
           <ArrowUp size={15} strokeWidth={2.6} />

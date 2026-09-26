@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { CircleMinus, CirclePlus } from "lucide-react";
+import { RETURN_DAYS, SHIPPING_DAYS, STORE_EMAIL, STORE_MAILTO } from "@/lib/store-info";
 
-// Placeholder policy copy: replace with the shop's real terms before launch.
+// Short answers; the full policies live on /shipping-returns, /terms and /privacy.
 const faqs = [
   {
     question: "How do I pick equipment for a home gym?",
@@ -12,13 +14,14 @@ const faqs = [
   {
     question: "How long does delivery take?",
     answer: [
-      "Every order arrives within 15 days of purchase. Large pieces such as bikes and racks go out by freight, and the carrier contacts you to book a delivery slot."
+      `Every order arrives within ${SHIPPING_DAYS} days of purchase. Large pieces such as bikes and racks go out by freight, and the carrier contacts you to book a delivery slot.`
     ]
   },
   {
     question: "Can I return equipment?",
     answer: [
-      "Unused items can be returned within 30 days in their original packaging. Start a return from your order confirmation email and we'll send a label, or arrange a collection for freight items."
+      `Unused items can be returned within ${RETURN_DAYS} days in their original packaging. Email ${STORE_EMAIL} with your order number (it's in your confirmation email and under Orders in your account) and we'll send a return label, or arrange a collection for freight items.`,
+      "Once the parcel is back, the refund goes to the card you paid with."
     ]
   },
   {
@@ -43,8 +46,9 @@ export function FaqSection() {
         <h2 id="faq-title">FAQs</h2>
         <p>
           Can&apos;t find what you need?{" "}
-          <a href="mailto:hello@forgefit.example">Email the team</a> and we&apos;ll get back
-          to you within a working day.
+          <a href={STORE_MAILTO}>Email the team</a> and we&apos;ll get back to you within a
+          working day. Full details are in{" "}
+          <Link href="/shipping-returns">Shipping &amp; returns</Link>.
         </p>
       </div>
 

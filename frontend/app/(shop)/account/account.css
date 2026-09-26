@@ -97,7 +97,7 @@
   gap: 7px;
 }
 
-.account-field > span {
+.account-field > label {
   color: var(--nav-text);
   font-size: 0.8rem;
   font-weight: 900;

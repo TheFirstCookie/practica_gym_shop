@@ -77,19 +77,22 @@ export function ReviewForm({ existing, onSave, onCancel }: ReviewFormProps) {
           onChange={(event) => setTitle(event.target.value)}
         />
       </label>
-      <label className="review-field">
-        <span>Your review (optional)</span>
+      {/* The counter sits outside the label, so it isn't read as part of the field's name. */}
+      <div className="review-field">
+        <label htmlFor={`${id}-body`}>Your review (optional)</label>
         <textarea
+          id={`${id}-body`}
           rows={4}
           maxLength={BODY_MAX}
+          aria-describedby={`${id}-count`}
           placeholder="How does it hold up? What do you use it for?"
           value={body}
           onChange={(event) => setBody(event.target.value)}
         />
-        <small>
-          {body.length}/{BODY_MAX}
+        <small id={`${id}-count`}>
+          {body.length}/{BODY_MAX} characters
         </small>
-      </label>
+      </div>
 
       {error && (
         <p className="review-error" role="alert">

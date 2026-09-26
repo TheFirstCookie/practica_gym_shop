@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getCategories, listProducts } from "@/lib/api/catalog";
 import type { ProductSummary } from "@/lib/api/types";
+import { LEGAL_PAGES, LEGAL_UPDATED } from "@/lib/legal";
 import { SITE_URL } from "@/lib/site";
 
 // Cached like the rest of the catalog (lib/api/catalog.ts), so new products appear within
@@ -27,7 +28,16 @@ async function allProducts(): Promise<ProductSummary[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const home: MetadataRoute.Sitemap = [{ url: SITE_URL, changeFrequency: "daily", priority: 1 }];
+  // Pages that don't depend on the API, so they're listed even when it's asleep.
+  const home: MetadataRoute.Sitemap = [
+    { url: SITE_URL, changeFrequency: "daily", priority: 1 },
+    ...LEGAL_PAGES.map((page) => ({
+      url: `${SITE_URL}${page.href}`,
+      lastModified: LEGAL_UPDATED,
+      changeFrequency: "yearly" as const,
+      priority: 0.3
+    }))
+  ];
 
   try {
     const [categories, products] = await Promise.all([getCategories(), allProducts()]);

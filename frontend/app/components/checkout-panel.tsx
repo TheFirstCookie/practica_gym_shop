@@ -135,6 +135,12 @@ export function CheckoutPanel({
         </p>
       )}
 
+      <p className="checkout-terms">
+        By checking out you accept the <Link href="/terms">terms of sale</Link> and{" "}
+        <Link href="/shipping-returns">returns policy</Link>. See how we handle your data in the{" "}
+        <Link href="/privacy">privacy policy</Link>.
+      </p>
+
       <p className="checkout-test-hint">
         <LockKeyhole size={14} aria-hidden="true" />
         <span>

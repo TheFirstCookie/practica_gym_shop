@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Check, LogOut } from "lucide-react";
 import { useCustomerSession } from "@/app/components/customer-session";
+import { TextField } from "./text-field";
 
 const MIN_PASSWORD = 8;
 
@@ -67,21 +68,19 @@ function NameForm({ initialName, save }: { initialName: string; save: (name: str
     <section className="account-card" aria-labelledby="settings-name-heading">
       <h2 id="settings-name-heading">Your name</h2>
       <form className="account-form" onSubmit={onSubmit}>
-        <label className="account-field">
-          <span>Name</span>
-          <input
-            type="text"
-            autoComplete="name"
-            required
-            maxLength={60}
-            value={name}
-            onChange={(event) => {
-              setName(event.target.value);
-              setStatus({ state: "idle" });
-            }}
-          />
-          <small>New reviews show your first name and last initial.</small>
-        </label>
+        <TextField
+          label="Name"
+          hint="New reviews show your first name and last initial."
+          type="text"
+          autoComplete="name"
+          required
+          maxLength={60}
+          value={name}
+          onChange={(event) => {
+            setName(event.target.value);
+            setStatus({ state: "idle" });
+          }}
+        />
         <StatusLine status={status} />
         <button
           type="submit"
@@ -130,27 +129,23 @@ function PasswordForm({ save }: { save: (password: string) => Promise<string | n
     <section className="account-card" aria-labelledby="settings-password-heading">
       <h2 id="settings-password-heading">Password</h2>
       <form className="account-form" onSubmit={onSubmit}>
-        <label className="account-field">
-          <span>New password</span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={MIN_PASSWORD}
-            value={password}
-            onChange={(event) => edit(setPassword)(event.target.value)}
-          />
-        </label>
-        <label className="account-field">
-          <span>Repeat it</span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirm}
-            onChange={(event) => edit(setConfirm)(event.target.value)}
-          />
-        </label>
+        <TextField
+          label="New password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={MIN_PASSWORD}
+          value={password}
+          onChange={(event) => edit(setPassword)(event.target.value)}
+        />
+        <TextField
+          label="Repeat it"
+          type="password"
+          autoComplete="new-password"
+          required
+          value={confirm}
+          onChange={(event) => edit(setConfirm)(event.target.value)}
+        />
         <StatusLine status={status} />
         <button type="submit" className="button primary" disabled={status.state === "saving"}>
           {status.state === "saving" ? "Saving…" : "Change password"}
