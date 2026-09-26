@@ -120,6 +120,11 @@ function describe(error: AuthError): string {
     case "email_address_invalid":
       return "That email address doesn't look right.";
     default:
+      // "Error sending confirmation email" / "…magic link" / "…recovery email": the mail
+      // server refused (see Supabase's Auth logs). Nothing the shopper did wrong.
+      if (/error sending/i.test(error.message)) {
+        return "We couldn't send the email just now. Please try again in a few minutes.";
+      }
       return error.message;
   }
 }

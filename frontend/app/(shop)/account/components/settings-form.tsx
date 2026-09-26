@@ -3,9 +3,9 @@
 import { useState, type FormEvent } from "react";
 import { Check, LogOut, MailCheck } from "lucide-react";
 import { useCustomerSession } from "@/app/components/customer-session";
+import { passwordProblem, type PasswordContext } from "@/lib/password-strength";
+import { NewPasswordField } from "./new-password-field";
 import { TextField } from "./text-field";
-
-const MIN_PASSWORD = 8;
 
 type Status = { state: "idle" } | { state: "saving" } | { state: "saved"; text?: string } | { state: "error"; message: string };
 
@@ -19,7 +19,7 @@ export function SettingsForm() {
     <div className="account-settings">
       <NameForm initialName={customer.fullName ?? ""} save={updateName} />
       <EmailForm email={customer.email} pendingEmail={customer.pendingEmail} save={changeEmail} />
-      <PasswordForm save={changePassword} />
+      <PasswordForm save={changePassword} context={{ email: customer?.email, name: customer?.fullName ?? undefined }} />
 
       <section className="account-card" aria-labelledby="settings-session-heading">
         <h2 id="settings-session-heading">Signed in</h2>
@@ -158,7 +158,13 @@ function EmailForm({ email, pendingEmail, save }: EmailFormProps) {
   );
 }
 
-function PasswordForm({ save }: { save: (current: string, next: string) => Promise<string | null> }) {
+type PasswordFormProps = {
+  save: (current: string, next: string) => Promise<string | null>;
+  /** Their name and email, which the new password shouldn't contain. */
+  context: PasswordContext;
+};
+
+function PasswordForm({ save, context }: PasswordFormProps) {
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -166,8 +172,9 @@ function PasswordForm({ save }: { save: (current: string, next: string) => Promi
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (password.length < MIN_PASSWORD) {
-      setStatus({ state: "error", message: `Use at least ${MIN_PASSWORD} characters.` });
+    const problem = passwordProblem(password, context);
+    if (problem) {
+      setStatus({ state: "error", message: problem });
       return;
     }
     if (password !== confirm) {
@@ -203,15 +210,12 @@ function PasswordForm({ save }: { save: (current: string, next: string) => Promi
           value={current}
           onChange={(event) => edit(setCurrent)(event.target.value)}
         />
-        <TextField
+        <NewPasswordField
           label="New password"
-          hint={`At least ${MIN_PASSWORD} characters.`}
-          type="password"
-          autoComplete="new-password"
           required
-          minLength={MIN_PASSWORD}
           value={password}
-          onChange={(event) => edit(setPassword)(event.target.value)}
+          context={context}
+          onChange={edit(setPassword)}
         />
         <TextField
           label="Repeat it"

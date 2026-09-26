@@ -5,8 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { LogIn, Mail, UserPlus } from "lucide-react";
 import { useCustomerSession } from "@/app/components/customer-session";
+import { passwordProblem } from "@/lib/password-strength";
 import { CheckInbox } from "./check-inbox";
 import { LinkNotice } from "./link-notice";
+import { NewPasswordField } from "./new-password-field";
 import { TextField } from "./text-field";
 
 type Mode = "sign-in" | "create";
@@ -14,7 +16,6 @@ type Mode = "sign-in" | "create";
 /** An email we just sent: the sign-up confirmation or a one-time sign-in link. */
 type Sent = { kind: "confirm" | "sign-in-link"; email: string };
 
-const MIN_PASSWORD = 8;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Only paths on this site, so ?next= can't bounce people to another website.
@@ -62,8 +63,9 @@ export function AuthForm() {
     setUnconfirmed(false);
     const address = email.trim();
 
-    if (mode === "create" && password.length < MIN_PASSWORD) {
-      setError(`Use at least ${MIN_PASSWORD} characters for your password.`);
+    const problem = mode === "create" ? passwordProblem(password, { name, email: address }) : null;
+    if (problem) {
+      setError(problem);
       return;
     }
 
@@ -184,16 +186,24 @@ export function AuthForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <TextField
-          label="Password"
-          hint={creating ? `At least ${MIN_PASSWORD} characters.` : undefined}
-          type="password"
-          autoComplete={creating ? "new-password" : "current-password"}
-          required
-          minLength={creating ? MIN_PASSWORD : undefined}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
+        {creating ? (
+          <NewPasswordField
+            label="Password"
+            required
+            value={password}
+            context={{ name, email }}
+            onChange={setPassword}
+          />
+        ) : (
+          <TextField
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        )}
 
         {!creating && (
           <Link href="/account/forgot-password" className="auth-forgot">

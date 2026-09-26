@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { KeyRound } from "lucide-react";
 import { useCustomerSession } from "@/app/components/customer-session";
+import { passwordProblem } from "@/lib/password-strength";
 import { LinkNotice } from "./link-notice";
+import { NewPasswordField } from "./new-password-field";
 import { TextField } from "./text-field";
-
-const MIN_PASSWORD = 8;
 
 /**
  * Where the password-reset email leads. The link signs the shopper in (Supabase reads it
@@ -21,11 +21,14 @@ export function ResetPasswordForm() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const customer = state.status === "signed-in" ? state.customer : null;
+  const context = { email: customer?.email, name: customer?.fullName ?? undefined };
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (password.length < MIN_PASSWORD) {
-      setError(`Use at least ${MIN_PASSWORD} characters.`);
+    const problem = passwordProblem(password, context);
+    if (problem) {
+      setError(problem);
       return;
     }
     if (password !== confirm) {
@@ -76,15 +79,12 @@ export function ResetPasswordForm() {
         Choose a new password for <strong>{state.status === "signed-in" ? state.customer.email : "your account"}</strong>.
       </p>
       <form className="account-form" onSubmit={onSubmit}>
-        <TextField
+        <NewPasswordField
           label="New password"
-          hint={`At least ${MIN_PASSWORD} characters.`}
-          type="password"
-          autoComplete="new-password"
           required
-          minLength={MIN_PASSWORD}
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          context={context}
+          onChange={setPassword}
         />
         <TextField
           label="Repeat it"

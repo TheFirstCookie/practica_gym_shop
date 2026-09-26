@@ -163,7 +163,8 @@ Vitest with jsdom and Testing Library. No API or Supabase is needed: tests stub 
 the localStorage cart (tampered or corrupt data, other tabs), the API client (query
 building, tokens, error shapes, network failures), checkout's stock-problem parsing,
 variants (the picker, per-variant cart lines, fixing only the line that ran short, the
-admin editor's checks), the
+admin editor's checks), the password strength meter (common passwords, patterns, the
+shopper's own name), the
 review form, the wishlist heart (signed out, signed in, failure), the sign-in and sign-up
 form (including `?next=` never leaving the site), the policy pages, the footer links and
 the sitemap. GitHub Actions runs lint, typecheck, tests and a build on every push and pull

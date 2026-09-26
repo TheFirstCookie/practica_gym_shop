@@ -129,6 +129,56 @@
   outline: none;
 }
 
+.account-field input[aria-invalid="true"]:not(:focus) {
+  border-color: var(--hot);
+}
+
+/* Browser autofill paints its own light-blue box; keep the dark field instead. */
+.account-field input:-webkit-autofill,
+.account-field input:-webkit-autofill:hover,
+.account-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  box-shadow: 0 0 0 100px var(--page) inset;
+  transition: background-color 600000s 0s;
+}
+
+/* New-password strength: four segments that fill and change colour as it gets stronger. */
+.password-strength {
+  display: grid;
+  gap: 6px;
+  --strength: var(--hot);
+}
+
+.password-strength[data-score="2"] {
+  --strength: var(--gold);
+}
+
+.password-strength[data-score="3"],
+.password-strength[data-score="4"] {
+  --strength: var(--green);
+}
+
+.password-strength-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.password-strength-bar i {
+  height: 4px;
+  background: var(--line);
+  transition: background 160ms ease;
+}
+
+.password-strength-bar i[data-on] {
+  background: var(--strength);
+}
+
+.password-strength small b {
+  color: var(--strength);
+}
+
 .account-field small {
   color: var(--muted);
   font-size: 0.82rem;
