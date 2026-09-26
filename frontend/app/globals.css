@@ -1204,6 +1204,88 @@ h2 {
   color: var(--brand);
 }
 
+/* Variant picker (weights, sizes, colours) on the product page. */
+.variant-picker {
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+}
+
+.variant-picker legend {
+  margin-bottom: 10px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.variant-picker legend b {
+  color: var(--text);
+}
+
+.variant-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variant-option {
+  position: relative;
+  display: inline-grid;
+  min-width: 64px;
+  min-height: 44px;
+  place-content: center;
+  padding: 6px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.variant-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.variant-option small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.variant-option:hover {
+  border-color: var(--muted);
+}
+
+.variant-option:has(input:checked) {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--text);
+}
+
+.variant-option:has(input:focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.variant-option[data-sold-out] > span {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.cart-variant {
+  display: inline-block;
+  margin: -2px 8px 8px 0;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  color: var(--nav-text);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 .spec-list {
   display: grid;
   gap: 10px;

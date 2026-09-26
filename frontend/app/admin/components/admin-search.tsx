@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowRight, Box, CornerDownLeft, FolderTree, Receipt, Search, Tag } from "lucide-react";
 import { listAdminBrands, listAdminCategories, listAdminOrders, listAdminProducts } from "@/lib/api/admin";
 import type { AdminBrand, AdminCategory } from "@/lib/api/types";
-import { formatDateTime, formatPrice } from "@/lib/format";
+import { formatDateTime, formatPrice, formatProductPrice } from "@/lib/format";
 import { useAdminApi } from "../use-admin-api";
 import { ORDER_STATUS_LABELS, orderNumber } from "./order-display";
 
@@ -134,7 +134,7 @@ export function AdminSearch() {
                 title: product.name,
                 detail: [
                   product.brand.name,
-                  formatPrice(product.priceCents, product.currency),
+                  formatProductPrice(product),
                   `${product.stock} in stock`,
                   ...(product.isActive ? [] : ["hidden"])
                 ].join(" · "),

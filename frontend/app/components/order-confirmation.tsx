@@ -176,6 +176,7 @@ export function OrderConfirmation({ sessionId }: { sessionId: string }) {
               <span>
                 <strong>{item.name}</strong>
                 <small>
+                  {item.variantName && `${item.variantName} · `}
                   {item.quantity} × {price(item.unitPriceCents)}
                 </small>
               </span>

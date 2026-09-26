@@ -23,9 +23,14 @@ export type ProductSummary = {
   id: string;
   name: string;
   slug: string;
-  /** Integer cents: 2999 is $29.99. */
+  /** Integer cents: 2999 is $29.99. With variants, the cheapest one. */
   priceCents: number;
+  /** The most expensive variant; the same as priceCents without variants. */
+  priceMaxCents: number;
+  /** Bought by picking a variant (weight, size, colour...) on the product page. */
+  hasVariants: boolean;
   currency: string;
+  /** With variants, the total over all of them. */
   stock: number;
   tag: string | null;
   image: string | null;
@@ -33,12 +38,27 @@ export type ProductSummary = {
   brand: TaxonomyRef;
 };
 
+/** One option of a product, with its own price and stock. */
+export type ProductVariant = {
+  id: string;
+  /** "20 kg", "M", "Black"... */
+  name: string;
+  priceCents: number;
+  stock: number;
+};
+
 export type Product = ProductSummary & {
   description: string;
   specs: string[];
+  /** The options on sale, in display order; empty for a plain product. */
+  variants: ProductVariant[];
 };
 
-export type AdminProduct = Product & {
+export type AdminVariant = ProductVariant & { isActive: boolean };
+
+export type AdminProduct = Omit<Product, "variants"> & {
+  /** Every variant, hidden ones too. */
+  variants: AdminVariant[];
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -85,6 +105,8 @@ export type CheckoutOrder = {
   items: {
     productId: string | null;
     name: string;
+    /** "20 kg"; null for a product without variants. */
+    variantName: string | null;
     unitPriceCents: number;
     quantity: number;
     lineTotalCents: number;
@@ -140,6 +162,8 @@ export type AdminOrder = AdminOrderSummary & {
     /** null when the product has since been deleted. */
     productId: string | null;
     name: string;
+    /** Which variant to pack; null for a product without variants. */
+    variantName: string | null;
     unitPriceCents: number;
     quantity: number;
     lineTotalCents: number;
@@ -238,6 +262,7 @@ export type CustomerOrder = {
   shippingAddress: ShippingAddress | null;
   items: {
     name: string;
+    variantName: string | null;
     quantity: number;
     unitPriceCents: number;
     lineTotalCents: number;

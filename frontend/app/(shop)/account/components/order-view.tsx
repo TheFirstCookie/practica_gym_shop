@@ -77,6 +77,7 @@ export function OrderView({ orderId }: { orderId: string }) {
                   <span className="account-item-name">
                     {item.product ? <Link href={`/product/${item.product.slug}`}>{item.name}</Link> : item.name}
                     <small>
+                      {item.variantName && `${item.variantName} · `}
                       {item.quantity} × {price(item.unitPriceCents)}
                     </small>
                     {/* Paid-for gear can be reviewed, with a "Verified purchase" badge. */}

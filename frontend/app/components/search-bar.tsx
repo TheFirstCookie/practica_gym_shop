@@ -8,7 +8,7 @@ import { ArrowRight, LayoutGrid, Search, Tag, X } from "lucide-react";
 import { getBrands, getCategories } from "@/lib/api/catalog";
 import type { Brand, Category, ProductSummary } from "@/lib/api/types";
 import { MAX_QUERY_LENGTH } from "@/lib/filters";
-import { formatPrice } from "@/lib/format";
+import { formatProductPrice } from "@/lib/format";
 import { ProductImage } from "./product-image";
 import { useProductSuggestions } from "./use-product-suggestions";
 
@@ -301,7 +301,7 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
                           </small>
                         </span>
                         <span className="search-suggestion-price">
-                          {formatPrice(option.product.priceCents, option.product.currency)}
+                          {formatProductPrice(option.product)}
                         </span>
                       </Link>
                     )}

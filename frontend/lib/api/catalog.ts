@@ -85,7 +85,9 @@ export async function getProduct(slug: string, signal?: AbortSignal): Promise<Pr
   const result = await orNull(
     apiRequest<DataEnvelope<Product>>(`/products/${encodeURIComponent(slug)}`, { ...catalogCache, signal })
   );
-  return result?.data ?? null;
+  if (!result) return null;
+  // A response cached before the API had variants (up to a minute after it's deployed) has none.
+  return { ...result.data, variants: result.data.variants ?? [] };
 }
 
 export async function getRelatedProducts(slug: string, limit = 3): Promise<ProductSummary[]> {

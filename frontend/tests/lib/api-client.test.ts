@@ -71,11 +71,27 @@ describe("toCartProblem", () => {
     expect(toCartProblem(new ApiError(409, "insufficient_stock", "", { slug: "mat", available: 2 }))).toEqual({
       kind: "insufficient_stock",
       slug: "mat",
+      variant: null,
       available: 2
     });
     expect(toCartProblem(new ApiError(409, "product_unavailable", "", { slug: "mat" }))).toEqual({
       kind: "product_unavailable",
-      slug: "mat"
+      slug: "mat",
+      variant: null
+    });
+  });
+
+  it("says which variant a problem is about", () => {
+    const details = { slug: "bumper-plate", variant: "v-20", available: 1 };
+    expect(toCartProblem(new ApiError(409, "insufficient_stock", "", details))).toEqual({
+      kind: "insufficient_stock",
+      slug: "bumper-plate",
+      variant: "v-20",
+      available: 1
+    });
+    expect(toCartProblem(new ApiError(409, "variant_required", "", { slug: "bumper-plate" }))).toEqual({
+      kind: "variant_required",
+      slug: "bumper-plate"
     });
   });
 

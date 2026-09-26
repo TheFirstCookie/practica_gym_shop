@@ -50,6 +50,18 @@ export type ProductInput = {
   isActive: boolean;
 };
 
+/**
+ * One variant as the editor saves it. Without an id it's new; the list's order is the
+ * order shoppers see.
+ */
+export type VariantInput = {
+  id?: string;
+  name: string;
+  priceCents: number;
+  stock: number;
+  isActive: boolean;
+};
+
 export type AdminOrderListParams = {
   status?: OrderStatus | "all";
   q?: string;
@@ -121,6 +133,23 @@ export async function updateProduct(
     method: "PATCH",
     token,
     body: input
+  });
+  return data;
+}
+
+/**
+ * Replaces the product's variants with this list (missing ones are deleted; an empty list
+ * makes it a plain product again). The product's price and stock then follow the variants.
+ */
+export async function saveProductVariants(
+  token: string,
+  id: string,
+  variants: VariantInput[]
+): Promise<AdminProduct> {
+  const { data } = await apiRequest<DataEnvelope<AdminProduct>>(`/admin/products/${id}/variants`, {
+    method: "PUT",
+    token,
+    body: { variants }
   });
   return data;
 }

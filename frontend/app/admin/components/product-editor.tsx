@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Save } from "lucide-react";
-import { createProduct, getAdminProduct, updateProduct } from "@/lib/api/admin";
+import { createProduct, getAdminProduct, saveProductVariants, updateProduct } from "@/lib/api/admin";
 import { getBrands, getCategories } from "@/lib/api/catalog";
 import { ApiError } from "@/lib/api/client";
 import type { Brand, Category } from "@/lib/api/types";
+import { formatPrice } from "@/lib/format";
 import { useAdminApi } from "../use-admin-api";
 import { ImageField } from "./image-field";
 import {
@@ -20,11 +21,20 @@ import {
   type ProductFormField,
   type ProductFormValues
 } from "./product-form-values";
+import { VariantEditor } from "./variant-editor";
+import {
+  toVariantInputs,
+  toVariantRows,
+  variantTotals,
+  type VariantErrors,
+  type VariantFormRow
+} from "./variant-form-values";
 
 type EditorData = {
   categories: Category[];
   brands: Brand[];
   initial: ProductFormValues;
+  initialVariants: VariantFormRow[];
 };
 
 type LoadState = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: EditorData };
@@ -46,7 +56,8 @@ export function ProductEditor({ productId }: { productId?: string }) {
       .then(([categories, brands, product]) => {
         if (!current) return;
         const initial = product ? toFormValues(product) : emptyProductForm;
-        setLoad({ status: "ready", data: { categories, brands, initial } });
+        const initialVariants = product ? toVariantRows(product.variants) : [];
+        setLoad({ status: "ready", data: { categories, brands, initial, initialVariants } });
       })
       .catch((error: unknown) => {
         if (!current) return;
@@ -105,6 +116,8 @@ function ProductForm({ productId, data }: ProductFormProps) {
   // New products get a slug from their name until someone edits the slug by hand.
   const [slugEdited, setSlugEdited] = useState(!isNew);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [variants, setVariants] = useState(data.initialVariants);
+  const [variantErrors, setVariantErrors] = useState<VariantErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -117,27 +130,80 @@ function ProductForm({ productId, data }: ProductFormProps) {
     setErrors((current) => ({ ...current, [field]: undefined }));
   }
 
+  function changeVariants(next: VariantFormRow[]) {
+    if (next.length === 0 && variants.length > 0) {
+      // Back to a plain product: start its own price and stock from what the variants had.
+      const stock = variants.reduce((total, row) => total + (Number(row.stock) || 0), 0);
+      setValues((current) => ({ ...current, price: variants[0]!.price, stock: String(stock) }));
+    }
+    setVariants(next);
+    setVariantErrors({});
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
 
-    const result = toProductInput(values);
-    if (result.errors) {
-      setErrors(result.errors);
+    const variantResult = toVariantInputs(variants);
+    const totals = variantResult.inputs ? variantTotals(variantResult.inputs) : null;
+    // With variants, the product's own price and stock are theirs (the API recomputes them too).
+    const result = toProductInput(
+      totals ? { ...values, price: (totals.priceCents / 100).toFixed(2), stock: String(totals.stock) } : values
+    );
+    setVariantErrors(variantResult.errors ?? {});
+    if (result.errors || variantResult.errors) {
+      setErrors(result.errors ?? {});
       setFormError("Some fields need attention.");
       return;
     }
 
+    // Only touch variants when there are or were some, so plain products save as before.
+    const variantInputs = variantResult.inputs;
+    const saveVariants = variants.length > 0 || data.initialVariants.length > 0;
+
     setSaving(true);
+    // Which request failed decides what to tell the admin.
+    let step: "product" | "variants" = "product";
+    let createdId: string | null = null;
     try {
-      await run((token) =>
-        productId ? updateProduct(token, productId, result.input) : createProduct(token, result.input)
-      );
+      if (productId) {
+        // Variants first: while a product has any, the database works out its price and
+        // stock from them, so removing the last one must happen before those are written.
+        if (saveVariants) {
+          step = "variants";
+          const saved = await run((token) => saveProductVariants(token, productId, variantInputs));
+          // New rows have ids now, so saving again updates them instead of adding more.
+          setVariants(toVariantRows(saved.variants));
+        }
+        step = "product";
+        await run((token) => updateProduct(token, productId, result.input));
+      } else {
+        const product = await run((token) => createProduct(token, result.input));
+        createdId = product.id;
+        if (saveVariants) {
+          step = "variants";
+          await run((token) => saveProductVariants(token, product.id, variantInputs));
+        }
+      }
       await refreshShop();
       router.push(`/admin/products?notice=${isNew ? "created" : "updated"}`);
     } catch (error) {
       setSaving(false);
-      if (error instanceof ApiError && error.status === 409) {
+      if (createdId) {
+        // The product exists now; saving this form again would create a second one.
+        await refreshShop();
+        router.push("/admin/products?notice=created-without-variants");
+        return;
+      }
+      if (step === "variants") {
+        setFormError(
+          error instanceof ApiError && error.status === 409
+            ? "Two variants can't have the same name."
+            : error instanceof Error
+              ? error.message
+              : "Couldn't save the variants"
+        );
+      } else if (error instanceof ApiError && error.status === 409) {
         setErrors({ slug: "Another product already uses this URL name" });
         setFormError("Pick a different URL name.");
       } else if (error instanceof ApiError && error.fieldIssues.length > 0) {
@@ -259,31 +325,35 @@ function ProductForm({ productId, data }: ProductFormProps) {
         <div className="admin-form-column">
           <fieldset className="admin-panel">
             <legend>Price and stock</legend>
-            <div className="admin-field-row">
-              <Field label="Price (USD)" error={errors.price}>
-                {(id) => (
-                  <input
-                    id={id}
-                    inputMode="decimal"
-                    placeholder="49.99"
-                    value={values.price}
-                    onChange={(event) => set("price", event.target.value)}
-                  />
-                )}
-              </Field>
-              <Field label="In stock" error={errors.stock}>
-                {(id) => (
-                  <input
-                    id={id}
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={values.stock}
-                    onChange={(event) => set("stock", event.target.value)}
-                  />
-                )}
-              </Field>
-            </div>
+            {variants.length > 0 ? (
+              <VariantTotals rows={variants} />
+            ) : (
+              <div className="admin-field-row">
+                <Field label="Price (USD)" error={errors.price}>
+                  {(id) => (
+                    <input
+                      id={id}
+                      inputMode="decimal"
+                      placeholder="49.99"
+                      value={values.price}
+                      onChange={(event) => set("price", event.target.value)}
+                    />
+                  )}
+                </Field>
+                <Field label="In stock" error={errors.stock}>
+                  {(id) => (
+                    <input
+                      id={id}
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={values.stock}
+                      onChange={(event) => set("stock", event.target.value)}
+                    />
+                  )}
+                </Field>
+              </div>
+            )}
           </fieldset>
           <fieldset className="admin-panel">
             <legend>Photo</legend>
@@ -317,6 +387,14 @@ function ProductForm({ productId, data }: ProductFormProps) {
         </div>
       </div>
 
+      <VariantEditor
+        rows={variants}
+        errors={variantErrors}
+        onChange={changeVariants}
+        defaultPrice={values.price}
+        defaultStock={values.stock}
+      />
+
       <div className="admin-form-footer">
         <Link href="/admin/products" className="button secondary">
           Cancel
@@ -324,6 +402,33 @@ function ProductForm({ productId, data }: ProductFormProps) {
         <FormActions saving={saving} />
       </div>
     </form>
+  );
+}
+
+/** With variants, the product's price and stock are worked out from them. */
+function VariantTotals({ rows }: { rows: VariantFormRow[] }) {
+  const result = toVariantInputs(rows);
+  const totals = result.inputs ? variantTotals(result.inputs) : null;
+  const prices = result.inputs?.filter((variant) => variant.isActive).map((variant) => variant.priceCents) ?? [];
+  const range =
+    totals && prices.length > 0
+      ? Math.max(...prices) > totals.priceCents
+        ? `${formatPrice(totals.priceCents)} – ${formatPrice(Math.max(...prices))}`
+        : formatPrice(totals.priceCents)
+      : "–";
+
+  return (
+    <div className="admin-variant-totals">
+      <p>
+        <span>Price</span>
+        <strong>{range}</strong>
+      </p>
+      <p>
+        <span>In stock</span>
+        <strong>{totals ? totals.stock : "–"}</strong>
+      </p>
+      <small className="admin-hint">Set per variant below. Shoppers see the lowest price as “From …”.</small>
+    </div>
   );
 }
 

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Minus, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { abandonCheckoutSession } from "@/lib/api/checkout";
 import type { Product } from "@/lib/api/types";
+import { itemLabel, resolveLine, type LinePurchase } from "@/lib/cart-lines";
+import { lineKey, type CartLine } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
 import { takePendingCheckout } from "@/lib/pending-checkout";
 import { useCart } from "./cart-provider";
@@ -12,12 +14,14 @@ import { CheckoutPanel } from "./checkout-panel";
 import { ProductImage } from "./product-image";
 import { useCartProducts } from "./use-cart-products";
 
-type CartItem = {
-  slug: string;
-  quantity: number;
+type CartItem = CartLine & {
   /** undefined while loading, null when the product was removed from the shop. */
   product: Product | null | undefined;
+  /** Price and stock of what this line buys; null when the saved option isn't sold anymore. */
+  purchase: LinePurchase | null;
 };
+
+type PurchasableItem = CartItem & { product: Product; purchase: LinePurchase };
 
 type CartViewProps = {
   /** Set when Stripe sends the shopper back without paying. */
@@ -26,7 +30,8 @@ type CartViewProps = {
 
 export function CartView({ checkoutCancelled = false }: CartViewProps) {
   const { lines, count, ready, setQuantity, remove } = useCart();
-  const { products, loading, failed, retry } = useCartProducts(lines.map((line) => line.slug));
+  // Two sizes of one product are two lines but one product to fetch.
+  const { products, loading, failed, retry } = useCartProducts([...new Set(lines.map((line) => line.slug))]);
   // What checkout changed in the cart (e.g. a product sold out), kept here so it still
   // shows if that change emptied the cart.
   const [adjustment, setAdjustment] = useState<string | null>(null);
@@ -43,22 +48,23 @@ export function CartView({ checkoutCancelled = false }: CartViewProps) {
     }
   }, [checkoutCancelled]);
 
-  const items: CartItem[] = lines.map((line) => ({ ...line, product: products[line.slug] }));
-  const purchasable = items.filter(
-    (item): item is CartItem & { product: Product } => Boolean(item.product && item.product.stock > 0)
+  const items: CartItem[] = lines.map((line) => {
+    const product = products[line.slug];
+    return { ...line, product, purchase: product ? resolveLine(product, line) : null };
+  });
+  const purchasable = items.filter((item): item is PurchasableItem =>
+    Boolean(item.product && item.purchase && item.purchase.stock > 0)
   );
-  const subtotal = purchasable.reduce(
-    (total, item) => total + item.product.priceCents * item.quantity,
-    0
-  );
+  const subtotal = purchasable.reduce((total, item) => total + item.purchase.priceCents * item.quantity, 0);
   const currency = purchasable[0]?.product.currency ?? "usd";
 
   // Stock may have dropped since the item was added: trim the saved quantity to what's left.
   useEffect(() => {
     for (const line of lines) {
       const product = products[line.slug];
-      if (product && product.stock > 0 && line.quantity > product.stock) {
-        setQuantity(line.slug, product.stock);
+      const purchase = product ? resolveLine(product, line) : null;
+      if (purchase && purchase.stock > 0 && line.quantity > purchase.stock) {
+        setQuantity(line, purchase.stock);
       }
     }
   }, [lines, products, setQuantity]);
@@ -124,10 +130,10 @@ export function CartView({ checkoutCancelled = false }: CartViewProps) {
         <div className="cart-list" aria-busy={loading}>
           {items.map((item) => (
             <CartRow
-              key={item.slug}
+              key={lineKey(item)}
               item={item}
-              onQuantity={(quantity) => setQuantity(item.slug, quantity)}
-              onRemove={() => remove(item.slug)}
+              onQuantity={(quantity) => setQuantity(item, quantity)}
+              onRemove={() => remove(item)}
             />
           ))}
         </div>
@@ -136,7 +142,8 @@ export function CartView({ checkoutCancelled = false }: CartViewProps) {
       <CheckoutPanel
         lines={purchasable.map((item) => ({
           slug: item.slug,
-          name: item.product.name,
+          variant: item.variant,
+          name: itemLabel(item.product.name, item.purchase.variantName),
           quantity: item.quantity
         }))}
         subtotalCents={subtotal}
@@ -155,7 +162,7 @@ type CartRowProps = {
 };
 
 function CartRow({ item, onQuantity, onRemove }: CartRowProps) {
-  const { product, quantity, slug } = item;
+  const { product, purchase, quantity, slug } = item;
 
   if (product === undefined) {
     return <article className="cart-item cart-item-loading" aria-label="Loading item" />;
@@ -180,25 +187,60 @@ function CartRow({ item, onQuantity, onRemove }: CartRowProps) {
     );
   }
 
-  const soldOut = product.stock === 0;
+  const href = `/product/${product.slug}`;
+
+  // The size or colour saved with this line isn't sold anymore (or the product now comes
+  // in options and none was picked): send them back to choose.
+  if (!purchase) {
+    return (
+      <article className="cart-item cart-item-unavailable">
+        <Link href={href} className="cart-item-image" tabIndex={-1}>
+          <ProductImage src={product.image} alt="" />
+        </Link>
+        <div>
+          <small>{product.brand.name}</small>
+          <h2>
+            <Link href={href}>{product.name}</Link>
+          </h2>
+          <span className="cart-unit">
+            {!item.variant
+              ? "This now comes in several options."
+              : product.hasVariants
+                ? "The option you picked isn't sold anymore."
+                : "This no longer comes in options."}{" "}
+            <Link href={href}>Choose again</Link>
+          </span>
+        </div>
+        <div className="quantity-tools">
+          <button type="button" aria-label={`Remove ${product.name}`} onClick={onRemove}>
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </article>
+    );
+  }
+
+  const label = itemLabel(product.name, purchase.variantName);
+  const soldOut = purchase.stock === 0;
   const price = (cents: number) => formatPrice(cents, product.currency);
 
   return (
     <article className="cart-item">
-      <Link href={`/product/${product.slug}`} className="cart-item-image" tabIndex={-1}>
+      <Link href={href} className="cart-item-image" tabIndex={-1}>
         <ProductImage src={product.image} alt="" />
       </Link>
       <div>
         <small>{product.brand.name}</small>
         <h2>
-          <Link href={`/product/${product.slug}`}>{product.name}</Link>
+          <Link href={href}>{product.name}</Link>
         </h2>
+        {purchase.variantName && <span className="cart-variant">{purchase.variantName}</span>}
         {soldOut ? (
           <strong className="out-of-stock">Sold out</strong>
         ) : (
           <>
-            <strong>{price(product.priceCents * quantity)}</strong>
-            {quantity > 1 && <span className="cart-unit">{price(product.priceCents)} each</span>}
+            <strong>{price(purchase.priceCents * quantity)}</strong>
+            {quantity > 1 && <span className="cart-unit">{price(purchase.priceCents)} each</span>}
           </>
         )}
       </div>
@@ -207,7 +249,7 @@ function CartRow({ item, onQuantity, onRemove }: CartRowProps) {
           <>
             <button
               type="button"
-              aria-label={`Decrease ${product.name} quantity`}
+              aria-label={`Decrease ${label} quantity`}
               disabled={quantity <= 1}
               onClick={() => onQuantity(quantity - 1)}
             >
@@ -216,16 +258,16 @@ function CartRow({ item, onQuantity, onRemove }: CartRowProps) {
             <span aria-live="polite">{quantity}</span>
             <button
               type="button"
-              aria-label={`Increase ${product.name} quantity`}
-              title={quantity >= product.stock ? `Only ${product.stock} in stock` : undefined}
-              disabled={quantity >= product.stock}
+              aria-label={`Increase ${label} quantity`}
+              title={quantity >= purchase.stock ? `Only ${purchase.stock} in stock` : undefined}
+              disabled={quantity >= purchase.stock}
               onClick={() => onQuantity(quantity + 1)}
             >
               <Plus size={16} />
             </button>
           </>
         )}
-        <button type="button" aria-label={`Remove ${product.name}`} onClick={onRemove}>
+        <button type="button" aria-label={`Remove ${label}`} onClick={onRemove}>
           <Trash2 size={16} />
         </button>
       </div>

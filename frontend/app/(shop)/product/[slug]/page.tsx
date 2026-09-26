@@ -4,11 +4,11 @@ import { notFound } from "next/navigation";
 import { getProduct, getRelatedProducts } from "@/lib/api/catalog";
 import { getRatingSummary } from "@/lib/api/reviews";
 import type { Product, RatingSummary } from "@/lib/api/types";
-import { formatPrice } from "@/lib/format";
+import { formatProductPrice } from "@/lib/format";
 import { SITE_NAME, SITE_URL, toMetaDescription } from "@/lib/site";
 import { SiteHeader } from "@/app/components/site-header";
-import { AddToCart } from "@/app/components/add-to-cart";
 import { ProductImage } from "@/app/components/product-image";
+import { ProductPurchase } from "@/app/components/product-purchase";
 import { TagBadge } from "@/app/components/tag-badge";
 import { WishlistButton } from "@/app/components/wishlist-button";
 import { ProductReviews } from "@/app/components/reviews/product-reviews";
@@ -41,6 +41,27 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   };
 }
 
+/** schema.org offer: one price, or the range across the variants. */
+function toOffer(product: Product) {
+  const amount = (cents: number) => (cents / 100).toFixed(2);
+  const common = {
+    url: `${SITE_URL}/product/${product.slug}`,
+    priceCurrency: product.currency.toUpperCase(),
+    availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+  };
+
+  if (product.variants.length > 1) {
+    return {
+      "@type": "AggregateOffer",
+      ...common,
+      lowPrice: amount(product.priceCents),
+      highPrice: amount(product.priceMaxCents),
+      offerCount: product.variants.length
+    };
+  }
+  return { "@type": "Offer", ...common, price: amount(product.priceCents) };
+}
+
 /** schema.org Product data, so search results can show the price, stock and rating. */
 function toJsonLd(product: Product, rating: RatingSummary | null) {
   return {
@@ -52,13 +73,7 @@ function toJsonLd(product: Product, rating: RatingSummary | null) {
     sku: product.slug,
     category: product.category.name,
     brand: { "@type": "Brand", name: product.brand.name },
-    offers: {
-      "@type": "Offer",
-      url: `${SITE_URL}/product/${product.slug}`,
-      price: (product.priceCents / 100).toFixed(2),
-      priceCurrency: product.currency.toUpperCase(),
-      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
-    },
+    offers: toOffer(product),
     aggregateRating:
       rating && rating.average !== null
         ? { "@type": "AggregateRating", ratingValue: rating.average, reviewCount: rating.count, bestRating: 5 }
@@ -75,8 +90,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const [related, rating] = await Promise.all([getRelatedProducts(product.slug), getRatingSummary(product.slug)]);
-  const price = (cents: number, currency: string) => formatPrice(cents, currency);
-
   return (
     <main>
       <script
@@ -110,15 +123,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </a>
           )}
           {product.description && <p>{product.description}</p>}
-          <div className="price-row">
-            <strong>{price(product.priceCents, product.currency)}</strong>
-            <span className={product.stock === 0 ? "out-of-stock" : undefined}>
-              {product.stock > 0 ? `${product.stock} in stock` : "Sold out"}
-            </span>
-          </div>
-          <AddToCart slug={product.slug} name={product.name} stock={product.stock}>
+          <ProductPurchase product={product}>
             <WishlistButton slug={product.slug} name={product.name} variant="full" />
-          </AddToCart>
+          </ProductPurchase>
           {product.specs.length > 0 && (
             <ul className="spec-list">
               {product.specs.map((spec) => (
@@ -146,7 +153,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   <ProductImage src={item.image} alt={item.name} />
                 </span>
                 <span>{item.name}</span>
-                <strong>{price(item.priceCents, item.currency)}</strong>
+                <strong>{formatProductPrice(item)}</strong>
               </Link>
             ))}
           </div>

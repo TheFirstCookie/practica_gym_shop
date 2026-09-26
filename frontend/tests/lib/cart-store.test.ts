@@ -43,6 +43,29 @@ describe("cart store", () => {
     ]);
   });
 
+  it("keeps each variant of a product as its own line", async () => {
+    window.localStorage.setItem(
+      "forgefit-cart",
+      JSON.stringify([
+        { slug: "plate", variant: "v-10", quantity: 2 },
+        { slug: "plate", variant: "v-20", quantity: 1 },
+        { slug: "plate", variant: "v-10", quantity: 4 },
+        { slug: "plate", quantity: 1 },
+        { slug: "plate", variant: "", quantity: 1 },
+        { slug: "plate", variant: 7, quantity: 1 }
+      ])
+    );
+    const store = await loadStore();
+
+    expect(store.getCartSnapshot()).toEqual([
+      { slug: "plate", variant: "v-10", quantity: 2 },
+      { slug: "plate", variant: "v-20", quantity: 1 },
+      { slug: "plate", quantity: 1 }
+    ]);
+    expect(store.lineKey({ slug: "plate", variant: "v-10" })).toBe("plate:v-10");
+    expect(store.isSameLine({ slug: "plate" }, { slug: "plate", variant: "v-10" })).toBe(false);
+  });
+
   it("survives a corrupt value", async () => {
     window.localStorage.setItem("forgefit-cart", "{not json");
     const store = await loadStore();

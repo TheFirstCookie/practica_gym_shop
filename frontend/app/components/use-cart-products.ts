@@ -15,8 +15,9 @@ export type CartProducts = {
 };
 
 /**
- * Fetches current details (price, stock, photo) for every product in the cart. Only
- * slugs not fetched yet are requested, so changing a quantity doesn't refetch anything.
+ * Fetches current details (price, stock, photo, variants) for every product in the cart.
+ * Only slugs not fetched yet are requested, so changing a quantity doesn't refetch anything.
+ * Pass each slug once, even when several variants of it are in the cart.
  */
 export function useCartProducts(slugs: string[]): CartProducts {
   const [products, setProducts] = useState<ProductsBySlug>({});

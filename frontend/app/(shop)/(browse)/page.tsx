@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Zap } from "lucide-react";
 import { getCategories, listProducts } from "@/lib/api/catalog";
-import { formatPrice } from "@/lib/format";
+import { formatProductPrice } from "@/lib/format";
 import {
   PAGE_SIZE,
   hasActiveFilters,
@@ -93,7 +93,7 @@ export default async function Home({ searchParams }: HomeProps) {
               {hero.tag && <TagBadge tag={hero.tag} />}
               <strong>{hero.name}</strong>
               <small>
-                {formatPrice(hero.priceCents, hero.currency)} - {hero.stock} in stock
+                {formatProductPrice(hero)} - {hero.stock} in stock
               </small>
             </div>
           </Link>

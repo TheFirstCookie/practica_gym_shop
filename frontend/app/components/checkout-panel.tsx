@@ -5,13 +5,14 @@ import { useState } from "react";
 import { CreditCard, LockKeyhole, UserRound } from "lucide-react";
 import { createCheckoutSession, toCartProblem, type CartProblem } from "@/lib/api/checkout";
 import { ApiError } from "@/lib/api/client";
+import { isSameLine, type CartLineRef } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
 import { rememberPendingCheckout } from "@/lib/pending-checkout";
 import { useCart } from "./cart-provider";
 import { signInHref, useCustomerSession } from "./customer-session";
 
-export type CheckoutLine = {
-  slug: string;
+export type CheckoutLine = CartLineRef & {
+  /** With the variant: "Bumper Plate (20 kg)". */
   name: string;
   quantity: number;
 };
@@ -56,14 +57,23 @@ export function CheckoutPanel({
   const [status, setStatus] = useState<Status>({ state: "idle" });
 
   function fixCart(problem: CartProblem): string {
-    const name = lines.find((line) => line.slug === problem.slug)?.name ?? "A product";
+    const line: CartLineRef =
+      problem.kind !== "variant_required" && problem.variant
+        ? { slug: problem.slug, variant: problem.variant }
+        : { slug: problem.slug };
+    const name = lines.find((item) => isSameLine(item, line))?.name ?? "A product";
+
+    if (problem.kind === "variant_required") {
+      remove(line);
+      return `${name} now comes in several options, so it was taken out of your cart. Pick one on its page and add it again.`;
+    }
 
     if (problem.kind === "insufficient_stock" && problem.available > 0) {
-      setQuantity(problem.slug, problem.available);
+      setQuantity(line, problem.available);
       return `Only ${problem.available} of ${name} left, so your cart now has that many. Check it and try again.`;
     }
 
-    remove(problem.slug);
+    remove(line);
     return problem.kind === "insufficient_stock"
       ? `${name} just sold out and was removed from your cart.`
       : `${name} is no longer sold and was removed from your cart.`;
@@ -76,7 +86,7 @@ export function CheckoutPanel({
       // Signed in, the order is saved to the account; otherwise it's a guest checkout.
       const token = (await getToken()) ?? undefined;
       const checkout = await createCheckoutSession(
-        lines.map(({ slug, quantity }) => ({ slug, quantity })),
+        lines.map(({ slug, variant, quantity }) => (variant ? { slug, variant, quantity } : { slug, quantity })),
         token
       );
       rememberPendingCheckout(checkout.sessionId);

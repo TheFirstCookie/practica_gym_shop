@@ -4,9 +4,11 @@ import { createContext, useCallback, useContext, useMemo, useSyncExternalStore }
 import {
   getCartSnapshot,
   getServerCartSnapshot,
+  isSameLine,
   subscribeToCart,
   updateCart,
-  type CartLine
+  type CartLine,
+  type CartLineRef
 } from "@/lib/cart-store";
 
 type CartContextValue = {
@@ -14,10 +16,12 @@ type CartContextValue = {
   count: number;
   // False until the saved cart has been read, so nothing flashes "empty" on load.
   ready: boolean;
+  /** How many of this product (or variant) are in the cart. */
+  quantityOf: (line: CartLineRef) => number;
   /** `stock` caps the line total when the caller knows it (product page). */
-  add: (slug: string, quantity?: number, stock?: number) => void;
-  setQuantity: (slug: string, quantity: number) => void;
-  remove: (slug: string) => void;
+  add: (line: CartLineRef, quantity?: number, stock?: number) => void;
+  setQuantity: (line: CartLineRef, quantity: number) => void;
+  remove: (line: CartLineRef) => void;
   clear: () => void;
 };
 
@@ -25,31 +29,37 @@ const emptyCart: CartLine[] = [];
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+/** Just the identifying fields, without an `undefined` variant key in storage. */
+function toRef({ slug, variant }: CartLineRef): CartLineRef {
+  return variant ? { slug, variant } : { slug };
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const stored = useSyncExternalStore(subscribeToCart, getCartSnapshot, getServerCartSnapshot);
   const ready = stored !== null;
   const lines = stored ?? emptyCart;
 
-  const add = useCallback((slug: string, quantity = 1, stock = Infinity) => {
+  const quantityOf = useCallback(
+    (target: CartLineRef) => lines.find((line) => isSameLine(line, target))?.quantity ?? 0,
+    [lines]
+  );
+
+  const add = useCallback((target: CartLineRef, quantity = 1, stock = Infinity) => {
     updateCart((current) =>
-      current.some((line) => line.slug === slug)
+      current.some((line) => isSameLine(line, target))
         ? current.map((line) =>
-            line.slug === slug
-              ? { ...line, quantity: Math.min(line.quantity + quantity, stock) }
-              : line
+            isSameLine(line, target) ? { ...line, quantity: Math.min(line.quantity + quantity, stock) } : line
           )
-        : [...current, { slug, quantity: Math.min(quantity, stock) }]
+        : [...current, { ...toRef(target), quantity: Math.min(quantity, stock) }]
     );
   }, []);
 
-  const setQuantity = useCallback((slug: string, quantity: number) => {
-    updateCart((current) =>
-      current.map((line) => (line.slug === slug ? { ...line, quantity } : line))
-    );
+  const setQuantity = useCallback((target: CartLineRef, quantity: number) => {
+    updateCart((current) => current.map((line) => (isSameLine(line, target) ? { ...line, quantity } : line)));
   }, []);
 
-  const remove = useCallback((slug: string) => {
-    updateCart((current) => current.filter((line) => line.slug !== slug));
+  const remove = useCallback((target: CartLineRef) => {
+    updateCart((current) => current.filter((line) => !isSameLine(line, target)));
   }, []);
 
   const clear = useCallback(() => updateCart(() => []), []);
@@ -59,12 +69,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       lines,
       count: lines.reduce((total, line) => total + line.quantity, 0),
       ready,
+      quantityOf,
       add,
       setQuantity,
       remove,
       clear
     }),
-    [lines, ready, add, setQuantity, remove, clear]
+    [lines, ready, quantityOf, add, setQuantity, remove, clear]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

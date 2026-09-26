@@ -1,15 +1,29 @@
 // The cart lives in localStorage, which is outside React. This module is the
 // "external store" that <CartProvider> reads through useSyncExternalStore.
 
-// Only slugs and quantities are stored. Prices and stock are always fetched fresh
-// from the API, so a stale cart can't carry an old price into checkout.
+// Only slugs, variant ids and quantities are stored. Prices and stock are always fetched
+// fresh from the API, so a stale cart can't carry an old price into checkout.
 export type CartLine = {
   slug: string;
+  /** The chosen variant's id, for products sold in weights, sizes or colours. */
+  variant?: string;
   quantity: number;
 };
 
-/** Upper bound per line; the real limit is the product's stock, applied when it's known. */
+/** Identifies a cart line: a product, or one variant of it. */
+export type CartLineRef = Pick<CartLine, "slug" | "variant">;
+
+/** Upper bound per line; the real limit is the stock, applied when it's known. */
 export const MAX_LINE_QUANTITY = 99;
+
+/** Stable key for a line (React keys, lookups): "slug" or "slug:variant". */
+export function lineKey(line: CartLineRef) {
+  return line.variant ? `${line.slug}:${line.variant}` : line.slug;
+}
+
+export function isSameLine(a: CartLineRef, b: CartLineRef) {
+  return lineKey(a) === lineKey(b);
+}
 
 const storageKey = "forgefit-cart";
 const listeners = new Set<() => void>();
@@ -29,15 +43,18 @@ function sanitize(lines: unknown): CartLine[] {
 
   for (const line of lines as Partial<CartLine>[]) {
     const slug = line?.slug;
+    const variant = line?.variant;
 
-    if (typeof slug !== "string" || !slug || result.some((item) => item.slug === slug)) {
-      continue;
-    }
+    if (typeof slug !== "string" || !slug) continue;
+    if (variant !== undefined && (typeof variant !== "string" || !variant)) continue;
+
+    const ref: CartLineRef = variant ? { slug, variant } : { slug };
+    if (result.some((item) => isSameLine(item, ref))) continue;
 
     const quantity = Math.min(Math.floor(Number(line.quantity)), MAX_LINE_QUANTITY);
 
     if (quantity >= 1) {
-      result.push({ slug, quantity });
+      result.push({ ...ref, quantity });
     }
   }
 

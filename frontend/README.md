@@ -86,11 +86,12 @@ lib/
 ├── orders.ts               # order number and address formatting (account + admin)
 ├── auth-landing.ts         # reads what an email link (confirm, reset, sign-in) came back with
 ├── legal.ts                # the policy pages and their "last updated" date
-├── cart-store.ts           # cart in localStorage (slugs + quantities only)
+├── cart-store.ts           # cart in localStorage (slugs, variant ids, quantities only)
+├── cart-lines.ts           # prices a saved cart line against the product (and its variant)
 ├── pending-checkout.ts     # remembers the open Stripe session for the "back" link
 ├── filters.ts              # URL params -> filters (?brand, ?sort, ?page, ?q)
 ├── site.ts                 # site name, URL and description for SEO
-├── format.ts               # prices in cents -> "$29.99"
+├── format.ts               # prices in cents -> "$29.99", "From $59" for variants
 └── store-info.ts           # contact email, shipping/returns promises (FAQ, perks, policies)
 tests/
 ├── lib/                    # formatting, URL filters, cart storage, API client
@@ -105,16 +106,20 @@ tests/
 - **Admin edits** go straight to the API with the admin's Supabase access token. After each
   save, the `refreshStorefront` server action clears the `catalog` cache, so the change is
   visible on the next page view.
-- **The cart** stores only slugs and quantities; the cart page fetches current prices and
-  stock, so it can't show stale prices.
-- **Checkout** sends only slugs and quantities to the API, which reserves the stock and
-  returns a Stripe Checkout link. Stripe returns the shopper to `/checkout/success`, which
-  polls the order until the payment is confirmed and then empties the cart. Coming back
+- **The cart** stores only slugs, variant ids and quantities; the cart page fetches current
+  prices and stock, so it can't show stale prices. Each variant of a product is its own line.
+  If a saved variant is removed or hidden, its line asks the shopper to choose again.
+- **Variants** (weights, sizes, colours): the product page shows a picker, and the price,
+  stock and "Add to cart" follow the chosen one. Cards show "From $59" when the variants'
+  prices differ. Orders, emails and Stripe's page show the variant with the product name.
+- **Checkout** sends only slugs, variant ids and quantities to the API, which reserves the
+  stock and returns a Stripe Checkout link. Stripe returns the shopper to `/checkout/success`,
+  which polls the order until the payment is confirmed and then empties the cart. Coming back
   through Stripe's "back" link releases the reserved stock right away. If stock ran out
   meanwhile, the cart is corrected and the shopper is told what changed. Test card:
   `4242 4242 4242 4242`.
-- **Accounts** use Supabase Auth in the browser (email and password). The shopper's session
-  is stored separately from the admin's, so signing in to one doesn't affect the other.
+- **Accounts** use Supabase Auth in the browser (email and password). The shop and `/admin`
+  share one session: admins sign in on the shop's page and get a link to the dashboard.
   Their access token goes to the API, which checks it on every request; orders are matched
   to accounts by user id, never by email. Checking out while signed in saves the order to
   the account and pre-fills the email on Stripe; guest checkout works as before.
@@ -156,7 +161,9 @@ npm test
 Vitest with jsdom and Testing Library. No API or Supabase is needed: tests stub `fetch`,
 `next/navigation` and the session hooks. They cover price and date formatting, URL filters,
 the localStorage cart (tampered or corrupt data, other tabs), the API client (query
-building, tokens, error shapes, network failures), checkout's stock-problem parsing, the
+building, tokens, error shapes, network failures), checkout's stock-problem parsing,
+variants (the picker, per-variant cart lines, fixing only the line that ran short, the
+admin editor's checks), the
 review form, the wishlist heart (signed out, signed in, failure), the sign-in and sign-up
 form (including `?next=` never leaving the site), the policy pages, the footer links and
 the sitemap. GitHub Actions runs lint, typecheck, tests and a build on every push and pull
@@ -218,7 +225,9 @@ access, and the API rejects their requests regardless of what the UI shows. The 
   confirmation step. Putting the items back in stock is a separate choice (ticked by
   default for unshipped orders), and can also be done later when a parcel comes back.
 - **Products** (`/admin/products`): search, create, edit, upload photos, hide from or
-  restore to the shop. Photos are resized in the browser before upload (longest side
+  restore to the shop. The **Variants** panel adds weights, sizes or colours, each with a
+  name, price and stock, in the order shoppers see them; untick "On sale" to hide one.
+  While a product has variants, its own price and stock are worked out from them. Photos are resized in the browser before upload (longest side
   1600px, WebP), so a 10 MB phone photo becomes a few hundred KB.
 - **Categories** and **Brands**: filter, add, rename, change a category's tile colour and
   order, and delete ones no product uses. Changes show on the storefront right away.

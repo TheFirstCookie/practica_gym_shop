@@ -153,6 +153,8 @@ function OrderView({ order, onChange }: OrderViewProps) {
                       ) : (
                         <span title="This product was deleted">{item.name}</span>
                       )}
+                      {/* What to pick off the shelf: the weight, size or colour bought. */}
+                      {item.variantName && <span className="order-item-variant">{item.variantName}</span>}
                     </td>
                     <td className="numeric">{price(item.unitPriceCents)}</td>
                     <td className="numeric">{item.quantity}</td>

@@ -3,22 +3,25 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
+import type { CartLineRef } from "@/lib/cart-store";
 import { useCart } from "./cart-provider";
 
 type AddToCartProps = {
-  slug: string;
+  /** The product, or the chosen variant of it. */
+  line: CartLineRef;
+  /** For button labels: "Bumper Plate (20 kg)". */
   name: string;
   stock: number;
   /** More buttons for the same row (the wishlist heart). */
   children?: React.ReactNode;
 };
 
-export function AddToCart({ slug, name, stock, children }: AddToCartProps) {
-  const { lines, add } = useCart();
+export function AddToCart({ line, name, stock, children }: AddToCartProps) {
+  const { quantityOf, add } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
-  const inCart = lines.find((line) => line.slug === slug)?.quantity ?? 0;
+  const inCart = quantityOf(line);
   const available = Math.max(stock - inCart, 0);
   const chosen = Math.min(quantity, Math.max(available, 1));
 
@@ -32,7 +35,7 @@ export function AddToCart({ slug, name, stock, children }: AddToCartProps) {
   }, [justAdded]);
 
   function handleAdd() {
-    add(slug, chosen, stock);
+    add(line, chosen, stock);
     setQuantity(1);
     setJustAdded(true);
   }

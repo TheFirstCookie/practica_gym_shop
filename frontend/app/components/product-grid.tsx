@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ProductSummary } from "@/lib/api/types";
-import { formatPrice } from "@/lib/format";
+import { formatProductPrice } from "@/lib/format";
 import { ProductImage } from "./product-image";
 import { TagBadge } from "./tag-badge";
 import { WishlistButton } from "./wishlist-button";
@@ -42,7 +42,7 @@ export function ProductGrid({ products, featureFirst = false, clearHref }: Produ
                 <small>{product.brand.name}</small>
                 <h3>{product.name}</h3>
               </div>
-              <strong>{formatPrice(product.priceCents, product.currency)}</strong>
+              <strong>{formatProductPrice(product)}</strong>
             </div>
           </Link>
           <WishlistButton slug={product.slug} name={product.name} />

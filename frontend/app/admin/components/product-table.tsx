@@ -11,7 +11,7 @@ import {
   type AdminProductStatus
 } from "@/lib/api/admin";
 import type { AdminProduct, ProductList } from "@/lib/api/types";
-import { formatPrice } from "@/lib/format";
+import { formatProductPrice } from "@/lib/format";
 import { ProductImage } from "@/app/components/product-image";
 import { useAdminApi } from "../use-admin-api";
 
@@ -26,7 +26,8 @@ const STATUS_TABS: { value: AdminProductStatus; label: string }[] = [
 
 const NOTICES: Record<string, string> = {
   created: "Product created. It's live in the shop.",
-  updated: "Changes saved."
+  updated: "Changes saved.",
+  "created-without-variants": "Product created, but its variants couldn't be saved. Open it to add them again."
 };
 
 type Loaded = { key: string; list: ProductList<AdminProduct> } | { key: string; error: string };
@@ -204,13 +205,17 @@ export function ProductTable() {
                       </span>
                       <span>
                         <strong>{product.name}</strong>
-                        <small>/{product.slug}</small>
+                        <small>
+                          /{product.slug}
+                          {product.variants.length > 0 &&
+                            ` · ${product.variants.length} ${product.variants.length === 1 ? "variant" : "variants"}`}
+                        </small>
                       </span>
                     </Link>
                   </td>
                   <td>{product.category.name}</td>
                   <td>{product.brand.name}</td>
-                  <td className="numeric">{formatPrice(product.priceCents, product.currency)}</td>
+                  <td className="numeric">{formatProductPrice(product)}</td>
                   <td className="numeric" data-low={product.stock <= 5 || undefined}>
                     {product.stock}
                   </td>

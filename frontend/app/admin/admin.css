@@ -590,6 +590,107 @@
   color: var(--muted);
 }
 
+/* Variants: one row per weight, size or colour. */
+.admin-variants {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-variants .admin-hint {
+  margin: 0;
+}
+
+.admin-variant-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-variant-head,
+.admin-variant-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 0.8fr) 64px auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.admin-variant-head {
+  color: var(--nav-text);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Keeps the head's last column as wide as the row's buttons. */
+.admin-variant-head::after {
+  width: 114px;
+  content: "";
+}
+
+.admin-variant-field {
+  gap: 4px;
+}
+
+.admin-variant-check {
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  cursor: pointer;
+}
+
+.admin-variant-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--brand);
+}
+
+.admin-variant-row .admin-row-actions {
+  min-height: 44px;
+  align-items: center;
+}
+
+.admin-variant-row[data-hidden] input:not([type="checkbox"]) {
+  color: var(--muted);
+}
+
+.admin-variant-add {
+  justify-self: start;
+}
+
+.admin-variant-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+}
+
+.admin-variant-totals p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.admin-variant-totals span {
+  color: var(--nav-text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-variant-totals strong {
+  font-size: 1.2rem;
+}
+
+.admin-variant-totals small {
+  grid-column: 1 / -1;
+}
+
+.order-item-variant {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 /* Product list */
 
 .admin-section-heading {
@@ -1701,6 +1802,41 @@
 }
 
 @media (max-width: 640px) {
+  /* Variant rows stack: name on top, then price, stock and on-sale, each with its label. */
+  .admin-variant-head {
+    display: none;
+  }
+
+  .admin-variant-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 64px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .admin-variant-row > :first-child,
+  .admin-variant-row .admin-row-actions {
+    grid-column: 1 / -1;
+  }
+
+  .admin-variant-row .admin-row-actions {
+    justify-content: flex-start;
+    min-height: 0;
+  }
+
+  .admin-variant-field::before,
+  .admin-variant-check::before {
+    color: var(--nav-text);
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .admin-variant-check {
+    gap: 4px;
+    place-items: start center;
+  }
+
   /* Two tiles side by side; revenue takes the full width. */
   .admin-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

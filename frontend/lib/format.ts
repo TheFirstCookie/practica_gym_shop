@@ -19,6 +19,17 @@ export function formatPrice(cents: number, currency = "usd") {
   return formatter.format(cents / 100);
 }
 
+/** A card's price: "$49", or "From $49" when the variants cost different amounts. */
+export function formatProductPrice(product: {
+  priceCents: number;
+  priceMaxCents: number;
+  hasVariants: boolean;
+  currency: string;
+}) {
+  const price = formatPrice(product.priceCents, product.currency);
+  return product.hasVariants && product.priceMaxCents > product.priceCents ? `From ${price}` : price;
+}
+
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
