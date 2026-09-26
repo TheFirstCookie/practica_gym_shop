@@ -540,3 +540,111 @@
   width: 22px;
   height: 22px;
 }
+
+/* Email flows: forgot password, sign-in links, notices from email links */
+
+.account-error p {
+  margin: 0;
+}
+
+.account-error .auth-link-button {
+  margin-top: 8px;
+}
+
+.auth-forgot {
+  justify-self: end;
+  margin-top: -6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.auth-forgot:hover {
+  color: var(--brand);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+  content: "";
+}
+
+.auth-card .button.secondary {
+  justify-self: stretch;
+}
+
+.auth-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-link-button {
+  justify-self: start;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-link-button:hover {
+  color: var(--brand);
+}
+
+.link-notice {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.link-notice button {
+  display: grid;
+  flex: none;
+  padding: 2px;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.account-pending {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--brand-soft);
+  border-left: 3px solid var(--brand);
+  color: var(--body-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.account-pending svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--brand);
+}
+
+.account-pending strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}

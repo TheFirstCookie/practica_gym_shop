@@ -23,7 +23,7 @@ function setup(state: CustomerSessionState, saved: string[] = []) {
 
 const signedIn: CustomerSessionState = {
   status: "signed-in",
-  customer: { id: "u1", email: "sam@example.com", fullName: "Sam Shopper" }
+  customer: { id: "u1", email: "sam@example.com", fullName: "Sam Shopper", pendingEmail: null }
 };
 
 beforeEach(() => push.mockReset());

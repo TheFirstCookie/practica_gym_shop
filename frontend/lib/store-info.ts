@@ -2,7 +2,7 @@
 // Keep them in one place so the site never contradicts itself.
 
 /** Where shoppers write for returns, cancellations and privacy requests. */
-export const STORE_EMAIL = "hello@forgefit.example";
+export const STORE_EMAIL = "forgefit.shops@gmail.com";
 export const STORE_MAILTO = `mailto:${STORE_EMAIL}`;
 
 export const SHIPPING_DAYS = 15;

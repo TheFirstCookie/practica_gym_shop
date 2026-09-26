@@ -82,14 +82,14 @@ describe("AuthForm", () => {
 
   it("returns a signed-in shopper to where they came from", () => {
     search = new URLSearchParams("next=/product/mat");
-    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null } });
+    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null, pendingEmail: null } });
     render(<AuthForm />);
     expect(replace).toHaveBeenCalledWith("/product/mat");
   });
 
   it("never redirects to another website", () => {
     search = new URLSearchParams("next=//evil.example/steal");
-    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null } });
+    setup({ status: "signed-in", customer: { id: "u1", email: "sam@example.com", fullName: null, pendingEmail: null } });
     render(<AuthForm />);
     expect(replace).toHaveBeenCalledWith("/account");
   });

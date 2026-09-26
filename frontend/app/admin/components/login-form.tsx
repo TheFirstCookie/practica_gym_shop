@@ -105,6 +105,11 @@ export function LoginForm() {
         </form>
       )}
 
+      {/* Admins are Supabase users too, so the shop's reset flow works for them. */}
+      <Link href="/account/forgot-password" className="admin-back-link">
+        <span>Forgot your password?</span>
+        <ArrowRight size={15} />
+      </Link>
       <Link href="/" className="admin-back-link">
         <span>Back to the shop</span>
         <ArrowRight size={15} />

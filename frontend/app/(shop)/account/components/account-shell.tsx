@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ACCOUNT_LINKS, firstName } from "@/app/components/account-link";
 import { signInHref, useCustomerSession } from "@/app/components/customer-session";
+import { LinkNotice } from "./link-notice";
 
 /** Is `href` the tab for this page? Order pages belong to the Orders tab. */
 function isCurrent(href: string, pathname: string) {
@@ -40,6 +41,7 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
         <p className="eyebrow">Your account</p>
         <h1>Hi, {firstName(state.customer)}</h1>
       </div>
+      <LinkNotice />
       <nav className="account-tabs" aria-label="Account">
         {ACCOUNT_LINKS.map(({ href, label, icon: Icon }) => (
           <Link key={href} href={href} aria-current={isCurrent(href, pathname) ? "page" : undefined}>

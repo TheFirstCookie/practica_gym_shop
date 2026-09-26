@@ -54,7 +54,8 @@ app/
 │   ├── checkout/success/   # order confirmation after Stripe
 │   ├── (legal)/            # /shipping-returns, /terms, /privacy (legal.css, shared frame)
 │   └── account/            # shopper accounts (noindex, account.css)
-│       ├── sign-in/        # sign in / create account, returns to ?next=
+│       ├── sign-in/        # sign in / create account / emailed sign-in link, returns to ?next=
+│       ├── forgot-password/  reset-password/   # password reset by email
 │       ├── page.tsx        # order history;  orders/[id]/ order detail
 │       ├── wishlist/  settings/
 │       └── components/     # auth form, account shell (gate + tabs), order/wishlist views
@@ -83,6 +84,7 @@ lib/
 │   └── types.ts            # API response shapes
 ├── supabase/client.ts      # browser clients: admin (sign-in, uploads) and shopper, kept apart
 ├── orders.ts               # order number and address formatting (account + admin)
+├── auth-landing.ts         # reads what an email link (confirm, reset, sign-in) came back with
 ├── legal.ts                # the policy pages and their "last updated" date
 ├── cart-store.ts           # cart in localStorage (slugs + quantities only)
 ├── pending-checkout.ts     # remembers the open Stripe session for the "back" link
@@ -169,13 +171,26 @@ also creates accounts. Signed in, the header shows the shopper's name with a men
   its items, shipping address and progress, plus *Write a review* links.
 - **Wishlist** (`/account/wishlist`): products saved with the heart on product cards and
   product pages, with live prices and stock.
-- **Settings**: change name (shown on new reviews as "Ana B.") or password, sign out.
+- **Settings**: change name (shown on new reviews as "Ana B."), email (confirmed by email)
+  or password (asks for the current one), sign out.
 
-Supabase Auth settings this needs (**Authentication > Sign In / Providers > Email**): sign-ups
-allowed. For the demo, turn **Confirm email** off; Supabase's built-in mailer only delivers
-to your own team's addresses (a couple per hour), so real shoppers wouldn't get the link.
-With a custom SMTP server (e.g. Resend) it can stay on, and the form then says "check your
-inbox".
+### Account emails
+
+Supabase Auth sends them; the pages here ask for them and handle the links that come back.
+
+- **Sign-up confirmation**: after creating an account, "check your inbox" with a resend
+  button (one email a minute). The link signs the shopper in on `/account` with a
+  "your email is confirmed" note. Trying to sign in unconfirmed offers to resend it.
+- **Sign-in link**: "Email me a sign-in link" on the sign-in page; existing accounts only,
+  and the answer is the same for unknown addresses so the form can't reveal who shops here.
+- **Password reset**: `/account/forgot-password` sends the link (also linked from the admin
+  login); `/account/reset-password` sets the new password, or explains an expired link.
+- **Email change**: from Settings; the new address shows as pending until confirmed.
+
+Supabase puts the link's details in the URL fragment and clears it once read, so
+`lib/supabase/client.ts` captures them first (`lib/auth-landing.ts`) and the pages show
+what happened. SMTP, redirect URLs and the branded templates are set up in the Supabase
+dashboard; see "Shopper accounts and account emails" in the API's README.
 
 ## Admin
 
