@@ -61,26 +61,6 @@
   font-weight: 700;
 }
 
-.legal-notice {
-  display: flex;
-  gap: 12px;
-  padding: 16px 18px;
-  background: var(--brand-soft);
-  border-left: 4px solid var(--brand);
-  color: var(--body-text);
-  line-height: 1.55;
-}
-
-.legal-notice svg {
-  flex: none;
-  margin-top: 3px;
-  color: var(--brand);
-}
-
-.legal-notice p {
-  margin: 0;
-}
-
 .legal-article section {
   display: grid;
   gap: 12px;

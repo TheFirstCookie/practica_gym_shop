@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Info } from "lucide-react";
 import { SiteHeader } from "@/app/components/site-header";
 import { LEGAL_PAGES, LEGAL_UPDATED, type LegalPath } from "@/lib/legal";
 import { STORE_EMAIL, STORE_MAILTO } from "@/lib/store-info";
@@ -18,7 +17,7 @@ type LegalPageProps = {
   children: React.ReactNode;
 };
 
-/** Header, tabs between the policy pages, the demo notice and the policy text. */
+/** Header, tabs between the policy pages and the policy text. */
 export function LegalPage({ path, title, intro, children }: LegalPageProps) {
   return (
     <main>
@@ -41,15 +40,6 @@ export function LegalPage({ path, title, intro, children }: LegalPageProps) {
               Last updated <time dateTime={LEGAL_UPDATED}>{updatedLabel}</time>
             </p>
           </header>
-
-          <aside className="legal-notice">
-            <Info size={18} aria-hidden="true" />
-            <p>
-              ForgeFit Supply is a portfolio project. Checkout runs in Stripe&apos;s test mode, so no real
-              payments are taken and no parcels are shipped. These policies describe how the shop works as if
-              it were trading.
-            </p>
-          </aside>
 
           {children}
 

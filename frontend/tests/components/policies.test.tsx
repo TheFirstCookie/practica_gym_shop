@@ -20,10 +20,9 @@ const PAGES = [
 ];
 
 describe.each(PAGES)("$title page", ({ Page, title, path }) => {
-  it("has its heading, the demo notice and a way to reach us", () => {
+  it("has its heading and a way to reach us", () => {
     render(<Page />);
     expect(screen.getByRole("heading", { level: 1, name: title })).toBeInTheDocument();
-    expect(screen.getByText(/portfolio project/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: STORE_EMAIL })[0]).toHaveAttribute("href", `mailto:${STORE_EMAIL}`);
   });
 
