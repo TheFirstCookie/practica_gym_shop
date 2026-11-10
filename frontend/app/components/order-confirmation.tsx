@@ -7,7 +7,7 @@ import { getCheckoutOrder } from "@/lib/api/checkout";
 import { ApiError } from "@/lib/api/client";
 import type { CheckoutOrder } from "@/lib/api/types";
 import { formatPrice } from "@/lib/format";
-import { useCart } from "./cart-provider";
+import { completePendingCheckout } from "@/lib/pending-checkout";
 import { useCustomerSession } from "./customer-session";
 
 // Stripe usually confirms within seconds; after ~30 s we stop and offer a manual refresh.
@@ -22,7 +22,6 @@ type State =
 
 /** Watches an order until Stripe's payment is confirmed, then shows the receipt. */
 export function OrderConfirmation({ sessionId }: { sessionId: string }) {
-  const { clear } = useCart();
   const { customer } = useCustomerSession();
   const [state, setState] = useState<State>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
@@ -36,6 +35,7 @@ export function OrderConfirmation({ sessionId }: { sessionId: string }) {
     async function check() {
       try {
         const order = await getCheckoutOrder(sessionId, controller.signal);
+        if (controller.signal.aborted) return;
         polls += 1;
         const waiting = order.status === "pending";
         const waitedOut = waiting && polls >= MAX_POLLS;
@@ -63,9 +63,9 @@ export function OrderConfirmation({ sessionId }: { sessionId: string }) {
   useEffect(() => {
     if (paid && !cartCleared.current) {
       cartCleared.current = true;
-      clear();
+      completePendingCheckout(sessionId);
     }
-  }, [paid, clear]);
+  }, [paid, sessionId]);
 
   const retry = () => {
     setState({ status: "loading" });

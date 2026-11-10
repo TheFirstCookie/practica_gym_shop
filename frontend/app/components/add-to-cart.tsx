@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
-import type { CartLineRef } from "@/lib/cart-store";
+import { MAX_LINE_QUANTITY, MAX_CART_LINES, type CartLineRef } from "@/lib/cart-store";
 import { useCart } from "./cart-provider";
 
 type AddToCartProps = {
@@ -17,12 +17,13 @@ type AddToCartProps = {
 };
 
 export function AddToCart({ line, name, stock, children }: AddToCartProps) {
-  const { quantityOf, add } = useCart();
+  const { quantityOf, add, lines } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
   const inCart = quantityOf(line);
-  const available = Math.max(stock - inCart, 0);
+  const full = inCart === 0 && lines.length >= MAX_CART_LINES;
+  const available = full ? 0 : Math.max(Math.min(stock, MAX_LINE_QUANTITY) - inCart, 0);
   const chosen = Math.min(quantity, Math.max(available, 1));
 
   useEffect(() => {
@@ -40,13 +41,13 @@ export function AddToCart({ line, name, stock, children }: AddToCartProps) {
     setJustAdded(true);
   }
 
-  let label = "Add to cart";
+  let label = full ? "Cart limit reached" : "Add to cart";
   if (stock === 0) {
     label = "Sold out";
   } else if (justAdded) {
     label = "Added";
-  } else if (available === 0) {
-    label = "All stock in cart";
+  } else if (available === 0 && !full) {
+    label = inCart >= MAX_LINE_QUANTITY ? "Quantity limit reached" : "All stock in cart";
   }
 
   return (

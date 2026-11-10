@@ -101,7 +101,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <section className="product-detail">
         <div className="detail-image">
-          <ProductImage src={product.image} alt={product.name} />
+          <ProductImage src={product.image} alt={product.name} priority />
           {product.tag && <TagBadge tag={product.tag} className="detail-tag" />}
         </div>
 

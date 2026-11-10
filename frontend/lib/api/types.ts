@@ -141,6 +141,8 @@ export type ShippingAddress = {
 
 /** Everything the admin needs to pack and ship one order. */
 export type AdminOrder = AdminOrderSummary & {
+  paymentException?: string | null;
+  refundStatus?: string | null;
   subtotalCents: number;
   shippingAddress: ShippingAddress | null;
   cancelledAt: string | null;

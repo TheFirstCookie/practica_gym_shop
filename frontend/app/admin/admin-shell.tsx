@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Dumbbell, LogOut, RotateCcw } from "lucide-react";
 import { useAdminSession } from "./admin-session";
 import { AccountMenu } from "./components/account-menu";
+import { MfaSettings } from "@/app/components/mfa-settings";
 import { AdminSearch } from "./components/admin-search";
 
 /** Admins sign in on the shop's sign-in page, like everyone else, and come back here. */
@@ -94,6 +95,12 @@ function AdminNotice({ state, onSignOut, onRetry }: AdminNoticeProps) {
           </p>
         </section>
       );
+
+    case "mfa-required":
+      return <section className="admin-card">
+        <MfaSettings challengeOnly onVerified={onRetry} />
+        <Link href="/account/settings">Account security settings</Link>
+      </section>;
 
     case "forbidden":
       return (

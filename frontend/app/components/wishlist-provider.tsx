@@ -30,7 +30,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     const controller = new AbortController();
     getToken()
       .then((token) => (token ? getWishlist(token, controller.signal) : []))
-      .then((items) => setLoaded({ userId, slugs: new Set(items.map((item) => item.slug)) }))
+      .then((items) => { if (!controller.signal.aborted) setLoaded({ userId, slugs: new Set(items.map((item) => item.slug)) }); })
       // The hearts just stay empty; the wishlist page shows the real error.
       .catch(() => !controller.signal.aborted && setLoaded({ userId, slugs: new Set() }));
     return () => controller.abort();

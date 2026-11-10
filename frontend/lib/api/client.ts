@@ -82,7 +82,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
       method: options.method ?? "GET",
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      signal: options.signal,
+      signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(70_000)]) : AbortSignal.timeout(70_000),
       cache: options.cache,
       next: options.next
     });
@@ -93,5 +93,9 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 
   if (!response.ok) throw await readError(response);
   if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  const payload: unknown = await response.json();
+  if (!payload || typeof payload !== "object" || !("data" in payload)) {
+    throw new ApiError(502, "invalid_response", "The server returned an invalid response. Try again later.");
+  }
+  return payload as T;
 }

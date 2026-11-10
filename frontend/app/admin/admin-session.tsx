@@ -11,6 +11,7 @@ export type AdminSessionState =
   | { status: "unconfigured" }
   | { status: "signed-out" }
   | { status: "forbidden"; email: string | null }
+  | { status: "mfa-required" }
   | { status: "error"; message: string }
   | { status: "ready"; admin: AdminUser };
 
@@ -34,6 +35,7 @@ async function verify(session: Session | null): Promise<AdminSessionState> {
   try {
     return { status: "ready", admin: await getAdminMe(session.access_token) };
   } catch (error) {
+    if (error instanceof ApiError && error.code === "mfa_required") return { status: "mfa-required" };
     if (error instanceof ApiError && error.status === 403) {
       return { status: "forbidden", email: session.user.email ?? null };
     }
@@ -58,6 +60,7 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
     if (!supabase) return;
 
     let current = true;
+    let generation = 0;
     let verifiedUserId: string | null = null;
 
     // Fires once right away with the stored session, then on every sign-in and sign-out.
@@ -65,8 +68,10 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
       // Token refreshes don't change who is signed in, so there's nothing to re-check.
       if (event === "TOKEN_REFRESHED" && session?.user.id === verifiedUserId) return;
 
+      const request = ++generation;
+      setState(session ? { status: "loading" } : { status: "signed-out" });
       verify(session).then((next) => {
-        if (!current) return;
+        if (!current || request !== generation) return;
         verifiedUserId = next.status === "ready" ? next.admin.id : null;
         setState(next);
       });

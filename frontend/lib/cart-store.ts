@@ -15,6 +15,7 @@ export type CartLineRef = Pick<CartLine, "slug" | "variant">;
 
 /** Upper bound per line; the real limit is the stock, applied when it's known. */
 export const MAX_LINE_QUANTITY = 99;
+export const MAX_CART_LINES = 20;
 
 /** Stable key for a line (React keys, lookups): "slug" or "slug:variant". */
 export function lineKey(line: CartLineRef) {

@@ -63,7 +63,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
         </div>
       )}
 
-      {load.status === "ready" && (
+      {load.status === "ready" && load.order.id === orderId && (
         <OrderView order={load.order} onChange={(order) => setLoad({ status: "ready", order })} />
       )}
     </section>
@@ -128,6 +128,8 @@ function OrderView({ order, onChange }: OrderViewProps) {
         </p>
       )}
       <StatusNote order={order} />
+      {order.paymentException && <p className="admin-error" role="alert">{order.paymentException}</p>}
+      {order.refundStatus && order.refundStatus !== "succeeded" && <p role="status">Refund: {order.refundStatus}. Payment status will update after Stripe confirms the outcome.</p>}
 
       <div className="admin-order-grid">
         <div className="admin-form-column">
@@ -292,7 +294,8 @@ function RefundPanel({ order, onChange }: RefundPanelProps) {
   const [restock, setRestock] = useState(order.status === "paid");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const refundable = (order.status === "paid" || order.status === "fulfilled") && order.stripe.paymentIntentId;
+  const refundPending = order.refundStatus === "pending" || order.refundStatus === "requires_action";
+  const refundable = !refundPending && (order.status === "paid" || order.status === "fulfilled") && order.stripe.paymentIntentId;
   const canRestock = order.status === "refunded" && !order.restockedAt;
 
   if (!refundable && !canRestock) return null;

@@ -20,10 +20,13 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Only paths on this site, so ?next= can't bounce people to another website.
 export function safeNext(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/account/sign-in")) {
-    return "/account";
-  }
-  return value;
+  if (!value || !value.startsWith("/") || /[\\\x00-\x20\x7f]/.test(value)) return "/account";
+  try {
+    const base = new URL("https://store.invalid");
+    const destination = new URL(value, base);
+    if (destination.origin !== base.origin || destination.pathname.startsWith("//") || destination.pathname.startsWith("/account/sign-in")) return "/account";
+    return destination.pathname + destination.search + destination.hash;
+  } catch { return "/account"; }
 }
 
 /** Sign in (password or emailed link) or create a shop account; returns to ?next= afterwards. */

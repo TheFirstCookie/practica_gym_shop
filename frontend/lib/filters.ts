@@ -30,7 +30,7 @@ function firstValue(value: string | string[] | undefined) {
 export function parseFilters(searchParams: SearchParams): ProductFilters {
   const brandParam = searchParams.brand ?? [];
   const brands = [...new Set(Array.isArray(brandParam) ? brandParam : [brandParam])]
-    .filter((slug) => SLUG.test(slug))
+    .filter((slug) => slug.length <= 160 && SLUG.test(slug))
     .slice(0, 20);
   const requestedSort = firstValue(searchParams.sort);
   const sort = sortOptions.find((option) => option.value === requestedSort)?.value ?? "featured";
@@ -48,5 +48,5 @@ export function parseQuery(searchParams: SearchParams) {
 
 export function parsePage(searchParams: SearchParams) {
   const page = Number(firstValue(searchParams.page));
-  return Number.isInteger(page) && page >= 1 ? page : 1;
+  return Number.isInteger(page) && page >= 1 ? Math.min(page, 10_000) : 1;
 }

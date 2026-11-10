@@ -25,11 +25,10 @@ export function listReviews(slug: string, page = 1, signal?: AbortSignal): Promi
  */
 export async function getRatingSummary(slug: string): Promise<RatingSummary | null> {
   try {
-    const { meta } = await apiRequest<ReviewList>(path(slug), {
+    const { data } = await apiRequest<DataEnvelope<RatingSummary>>(`${path(slug)}/summary`, {
       next: { revalidate: 60, tags: [CATALOG_CACHE_TAG, ratingCacheTag(slug)] },
-      query: { pageSize: 1 }
     });
-    return meta.summary;
+    return data;
   } catch {
     return null;
   }

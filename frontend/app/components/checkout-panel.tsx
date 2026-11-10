@@ -5,7 +5,7 @@ import { useState } from "react";
 import { CreditCard, LockKeyhole, UserRound } from "lucide-react";
 import { createCheckoutSession, toCartProblem, type CartProblem } from "@/lib/api/checkout";
 import { ApiError } from "@/lib/api/client";
-import { isSameLine, type CartLineRef } from "@/lib/cart-store";
+import { MAX_CART_LINES, isSameLine, type CartLineRef } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
 import { rememberPendingCheckout } from "@/lib/pending-checkout";
 import { useCart } from "./cart-provider";
@@ -35,6 +35,7 @@ function describeError(error: unknown): string {
     if (error.code === "checkout_unavailable") {
       return "Checkout isn't switched on yet. Your cart is saved, so try again later.";
     }
+    if (error.status === 400) return "Check your cart quantities and keep at most 20 different items per checkout.";
     if (error.status === 429 || error.status === 502 || error.status === 0) return error.message;
   }
   return "Something went wrong starting checkout. Please try again.";
@@ -89,7 +90,7 @@ export function CheckoutPanel({
         lines.map(({ slug, variant, quantity }) => (variant ? { slug, variant, quantity } : { slug, quantity })),
         token
       );
-      rememberPendingCheckout(checkout.sessionId);
+      rememberPendingCheckout(checkout.sessionId, lines);
       // Full navigation to Stripe's page; the button stays in "redirecting" meanwhile.
       window.location.assign(checkout.url);
     } catch (error) {
@@ -113,7 +114,7 @@ export function CheckoutPanel({
       <button
         type="button"
         className="button primary"
-        disabled={loading || busy || lines.length === 0}
+        disabled={loading || busy || lines.length === 0 || lines.length > MAX_CART_LINES}
         onClick={startCheckout}
       >
         <CreditCard size={18} />
@@ -139,6 +140,7 @@ export function CheckoutPanel({
         )
       )}
 
+      {lines.length > MAX_CART_LINES && <p role="alert">Keep at most {MAX_CART_LINES} different items per checkout.</p>}
       {status.state === "error" && (
         <p className="checkout-note checkout-note-error" role="alert">
           {status.message}

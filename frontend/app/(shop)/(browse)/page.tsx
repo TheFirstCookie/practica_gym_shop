@@ -88,7 +88,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {hero && (
           <Link href={`/product/${hero.slug}`} className="hero-product">
-            <ProductImage src={hero.image} alt={hero.name} />
+            <ProductImage src={hero.image} alt={hero.name} priority />
             <div className="hero-product-panel">
               {hero.tag && <TagBadge tag={hero.tag} />}
               <strong>{hero.name}</strong>

@@ -22,6 +22,7 @@ type ImageFieldProps = {
   value: string | null;
   onChange: (url: string | null) => void;
   error?: string;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 /**
@@ -29,7 +30,7 @@ type ImageFieldProps = {
  * Supabase Storage with a one-time signed URL from the API, so files never pass through
  * the API server.
  */
-export function ImageField({ value, onChange, error }: ImageFieldProps) {
+export function ImageField({ value, onChange, error, onBusyChange }: ImageFieldProps) {
   const { run } = useAdminApi();
   const inputId = useId();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -58,6 +59,7 @@ export function ImageField({ value, onChange, error }: ImageFieldProps) {
     }
 
     setUploading(true);
+    onBusyChange?.(true);
     try {
       const image = await prepareProductImage(file, type);
       if (image.blob.size > MAX_UPLOAD_BYTES) {
@@ -78,6 +80,7 @@ export function ImageField({ value, onChange, error }: ImageFieldProps) {
       setUploadError(caught instanceof Error ? caught.message : "The upload failed");
     } finally {
       setUploading(false);
+      onBusyChange?.(false);
       if (fileInput.current) fileInput.current.value = "";
     }
   }
@@ -95,6 +98,7 @@ export function ImageField({ value, onChange, error }: ImageFieldProps) {
           ref={fileInput}
           id={inputId}
           type="file"
+          disabled={uploading}
           accept={ACCEPTED_TYPES.join(",")}
           className="visually-hidden"
           onChange={(event) => {

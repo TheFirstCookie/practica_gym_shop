@@ -48,6 +48,8 @@ export type ProductInput = {
   specs: string[];
   sortOrder: number;
   isActive: boolean;
+  variants?: VariantInput[];
+  expectedUpdatedAt?: string;
 };
 
 /**
@@ -133,23 +135,6 @@ export async function updateProduct(
     method: "PATCH",
     token,
     body: input
-  });
-  return data;
-}
-
-/**
- * Replaces the product's variants with this list (missing ones are deleted; an empty list
- * makes it a plain product again). The product's price and stock then follow the variants.
- */
-export async function saveProductVariants(
-  token: string,
-  id: string,
-  variants: VariantInput[]
-): Promise<AdminProduct> {
-  const { data } = await apiRequest<DataEnvelope<AdminProduct>>(`/admin/products/${id}/variants`, {
-    method: "PUT",
-    token,
-    body: { variants }
   });
   return data;
 }

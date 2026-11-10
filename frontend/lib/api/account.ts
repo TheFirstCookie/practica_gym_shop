@@ -10,10 +10,11 @@ export async function listMyOrders(token: string, signal?: AbortSignal): Promise
   return data;
 }
 
-export async function getMyOrder(token: string, id: string): Promise<CustomerOrder> {
+export async function getMyOrder(token: string, id: string, signal?: AbortSignal): Promise<CustomerOrder> {
   const { data } = await apiRequest<DataEnvelope<CustomerOrder>>(`/account/orders/${encodeURIComponent(id)}`, {
     ...noStore,
-    token
+    token,
+    signal
   });
   return data;
 }

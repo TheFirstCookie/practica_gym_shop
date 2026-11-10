@@ -6,7 +6,7 @@ import { ArrowRight, Minus, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { abandonCheckoutSession } from "@/lib/api/checkout";
 import type { Product } from "@/lib/api/types";
 import { itemLabel, resolveLine, type LinePurchase } from "@/lib/cart-lines";
-import { lineKey, type CartLine } from "@/lib/cart-store";
+import { MAX_LINE_QUANTITY, lineKey, type CartLine } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
 import { takePendingCheckout } from "@/lib/pending-checkout";
 import { useCart } from "./cart-provider";
@@ -41,12 +41,12 @@ export function CartView({ checkoutCancelled = false }: CartViewProps) {
     if (!checkoutCancelled) return;
     const sessionId = takePendingCheckout();
     if (sessionId) {
-      abandonCheckoutSession(sessionId).catch((error: unknown) => {
+      abandonCheckoutSession(sessionId).then(() => retry()).catch((error: unknown) => {
         // Not fatal: Stripe expires the session within 30 minutes anyway.
         console.warn("Couldn't release the abandoned checkout", error);
       });
     }
-  }, [checkoutCancelled]);
+  }, [checkoutCancelled, retry]);
 
   const items: CartItem[] = lines.map((line) => {
     const product = products[line.slug];
@@ -148,7 +148,7 @@ export function CartView({ checkoutCancelled = false }: CartViewProps) {
         }))}
         subtotalCents={subtotal}
         currency={currency}
-        loading={loading}
+        loading={loading || failed}
         onCartAdjusted={setAdjustment}
       />
     </section>
@@ -259,8 +259,8 @@ function CartRow({ item, onQuantity, onRemove }: CartRowProps) {
             <button
               type="button"
               aria-label={`Increase ${label} quantity`}
-              title={quantity >= purchase.stock ? `Only ${purchase.stock} in stock` : undefined}
-              disabled={quantity >= purchase.stock}
+              title={quantity >= Math.min(purchase.stock, MAX_LINE_QUANTITY) ? `Only ${purchase.stock} in stock` : undefined}
+              disabled={quantity >= Math.min(purchase.stock, MAX_LINE_QUANTITY)}
               onClick={() => onQuantity(quantity + 1)}
             >
               <Plus size={16} />

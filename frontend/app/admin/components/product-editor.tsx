@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Save } from "lucide-react";
-import { createProduct, getAdminProduct, saveProductVariants, updateProduct } from "@/lib/api/admin";
+import { createProduct, getAdminProduct, updateProduct } from "@/lib/api/admin";
 import { getBrands, getCategories } from "@/lib/api/catalog";
 import { ApiError } from "@/lib/api/client";
 import type { Brand, Category } from "@/lib/api/types";
@@ -35,9 +35,10 @@ type EditorData = {
   brands: Brand[];
   initial: ProductFormValues;
   initialVariants: VariantFormRow[];
+  updatedAt?: string;
 };
 
-type LoadState = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: EditorData };
+type LoadState = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; productId?: string; data: EditorData };
 
 /** Create (no productId) or edit a product. */
 export function ProductEditor({ productId }: { productId?: string }) {
@@ -57,7 +58,7 @@ export function ProductEditor({ productId }: { productId?: string }) {
         if (!current) return;
         const initial = product ? toFormValues(product) : emptyProductForm;
         const initialVariants = product ? toVariantRows(product.variants) : [];
-        setLoad({ status: "ready", data: { categories, brands, initial, initialVariants } });
+        setLoad({ status: "ready", productId, data: { categories, brands, initial, initialVariants, updatedAt: product?.updatedAt } });
       })
       .catch((error: unknown) => {
         if (!current) return;
@@ -94,7 +95,7 @@ export function ProductEditor({ productId }: { productId?: string }) {
         </div>
       )}
 
-      {load.status === "ready" && (
+      {load.status === "ready" && load.productId === productId && (
         // Keyed so switching between products starts from fresh form state.
         <ProductForm key={productId ?? "new"} productId={productId} data={load.data} />
       )}
@@ -120,6 +121,7 @@ function ProductForm({ productId, data }: ProductFormProps) {
   const [variantErrors, setVariantErrors] = useState<VariantErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   function set<K extends ProductFormField>(field: K, value: ProductFormValues[K]) {
     setValues((current) => {
@@ -162,47 +164,23 @@ function ProductForm({ productId, data }: ProductFormProps) {
     const saveVariants = variants.length > 0 || data.initialVariants.length > 0;
 
     setSaving(true);
-    // Which request failed decides what to tell the admin.
-    let step: "product" | "variants" = "product";
-    let createdId: string | null = null;
     try {
+      const input = { ...result.input, ...(saveVariants ? { variants: variantInputs } : {}) };
       if (productId) {
-        // Variants first: while a product has any, the database works out its price and
-        // stock from them, so removing the last one must happen before those are written.
-        if (saveVariants) {
-          step = "variants";
-          const saved = await run((token) => saveProductVariants(token, productId, variantInputs));
-          // New rows have ids now, so saving again updates them instead of adding more.
-          setVariants(toVariantRows(saved.variants));
-        }
-        step = "product";
-        await run((token) => updateProduct(token, productId, result.input));
+        await run((token) => updateProduct(token, productId, { ...input, expectedUpdatedAt: data.updatedAt }));
       } else {
-        const product = await run((token) => createProduct(token, result.input));
-        createdId = product.id;
-        if (saveVariants) {
-          step = "variants";
-          await run((token) => saveProductVariants(token, product.id, variantInputs));
-        }
+        await run((token) => createProduct(token, input));
       }
       await refreshShop();
       router.push(`/admin/products?notice=${isNew ? "created" : "updated"}`);
     } catch (error) {
       setSaving(false);
-      if (createdId) {
-        // The product exists now; saving this form again would create a second one.
-        await refreshShop();
-        router.push("/admin/products?notice=created-without-variants");
-        return;
-      }
-      if (step === "variants") {
-        setFormError(
-          error instanceof ApiError && error.status === 409
-            ? "Two variants can't have the same name."
-            : error instanceof Error
-              ? error.message
-              : "Couldn't save the variants"
-        );
+      if (error instanceof ApiError && error.code === "stale_product") {
+        setFormError("Stock or product details changed while you were editing. Reload this page before saving again.");
+      } else if (error instanceof ApiError && error.code === "inventory_in_use") {
+        setFormError(error.message);
+      } else if (error instanceof ApiError && error.status === 409 && saveVariants) {
+        setFormError(error.message);
       } else if (error instanceof ApiError && error.status === 409) {
         setErrors({ slug: "Another product already uses this URL name" });
         setFormError("Pick a different URL name.");
@@ -222,7 +200,7 @@ function ProductForm({ productId, data }: ProductFormProps) {
           <p className="eyebrow">{isNew ? "New product" : "Edit product"}</p>
           <h1>{values.name.trim() || (isNew ? "Untitled product" : "Product")}</h1>
         </div>
-        <FormActions saving={saving} />
+        <FormActions saving={saving || uploading} />
       </div>
 
       {formError && (
@@ -357,7 +335,7 @@ function ProductForm({ productId, data }: ProductFormProps) {
           </fieldset>
           <fieldset className="admin-panel">
             <legend>Photo</legend>
-            <ImageField value={values.imageUrl} onChange={(url) => set("imageUrl", url)} error={errors.imageUrl} />
+            <ImageField onBusyChange={setUploading} value={values.imageUrl} onChange={(url) => set("imageUrl", url)} error={errors.imageUrl} />
           </fieldset>
           <fieldset className="admin-panel">
             <legend>Visibility</legend>
@@ -399,7 +377,7 @@ function ProductForm({ productId, data }: ProductFormProps) {
         <Link href="/admin/products" className="button secondary">
           Cancel
         </Link>
-        <FormActions saving={saving} />
+        <FormActions saving={saving || uploading} />
       </div>
     </form>
   );

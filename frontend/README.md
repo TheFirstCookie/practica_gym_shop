@@ -234,3 +234,8 @@ access, and the API rejects their requests regardless of what the UI shows. The 
   order, and delete ones no product uses. Changes show on the storefront right away.
 - **Reviews** (`/admin/reviews`): every review, newest first, with its product and author;
   delete ones that break the rules.
+
+
+## Integrity and security update
+
+Deploy this frontend after the matching backend and database migration 0011. Product saves send product fields and variants in one transaction, with an expectedUpdatedAt token to prevent stale stock writes. Admin authenticator enrollment is in /account/settings; enable ADMIN_REQUIRE_MFA on the backend after enrollment. See the backend repository's DEPLOYMENT.md for the complete deployment checklist.

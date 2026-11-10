@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getProduct } from "@/lib/api/catalog";
 import type { Product } from "@/lib/api/types";
 
@@ -55,14 +55,16 @@ export function useCartProducts(slugs: string[]): CartProducts {
   }, [missingKey, attempt]);
 
   const failed = failedSlugs.some((slug) => missing.includes(slug));
+  const retry = useCallback(() => {
+    setProducts({});
+    setFailedSlugs([]);
+    setAttempt((value) => value + 1);
+  }, []);
 
   return {
     products,
     loading: missing.length > 0 && !failed,
     failed,
-    retry: () => {
-      setFailedSlugs([]);
-      setAttempt((value) => value + 1);
-    }
+    retry
   };
 }

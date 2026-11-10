@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthForm } from "@/app/(shop)/account/components/auth-form";
+import { AuthForm, safeNext } from "@/app/(shop)/account/components/auth-form";
 import { useCustomerSession, type CustomerSessionState } from "@/app/components/customer-session";
 
 const replace = vi.fn();
@@ -26,6 +26,15 @@ function setup(state: CustomerSessionState = { status: "signed-out" }) {
 beforeEach(() => {
   replace.mockReset();
   search = new URLSearchParams();
+});
+
+describe("redirect destination validation", () => {
+  it.each(["//example.org", "/\\example.org", "/\t/example.org", "/..//example.org", "///", "/account/sign-in?next=/admin"])("rejects %j", (value) => {
+    expect(safeNext(value)).toBe("/account");
+  });
+  it("preserves a valid local return path", () => {
+    expect(safeNext("/product/mat?option=large#reviews")).toBe("/product/mat?option=large#reviews");
+  });
 });
 
 describe("AuthForm", () => {

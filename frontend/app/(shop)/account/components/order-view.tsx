@@ -25,7 +25,7 @@ function timeline(order: CustomerOrder) {
 
 /** One of the shopper's orders: what's in it, where it ships and how far along it is. */
 export function OrderView({ orderId }: { orderId: string }) {
-  const load = useCallback((token: string) => getMyOrder(token, orderId), [orderId]);
+  const load = useCallback((token: string, signal: AbortSignal) => getMyOrder(token, orderId, signal), [orderId]);
   const { state, reload } = useAccountData(load);
 
   const back = (

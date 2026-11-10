@@ -5,6 +5,7 @@ import {
   getCartSnapshot,
   getServerCartSnapshot,
   isSameLine,
+  MAX_CART_LINES,
   subscribeToCart,
   updateCart,
   type CartLine,
@@ -50,7 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         ? current.map((line) =>
             isSameLine(line, target) ? { ...line, quantity: Math.min(line.quantity + quantity, stock) } : line
           )
-        : [...current, { ...toRef(target), quantity: Math.min(quantity, stock) }]
+        : current.length >= MAX_CART_LINES ? current : [...current, { ...toRef(target), quantity: Math.min(quantity, stock) }]
     );
   }, []);
 

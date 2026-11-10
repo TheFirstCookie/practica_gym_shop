@@ -5,6 +5,7 @@ import { Check, LogOut, MailCheck } from "lucide-react";
 import { useCustomerSession } from "@/app/components/customer-session";
 import { passwordProblem, type PasswordContext } from "@/lib/password-strength";
 import { NewPasswordField } from "./new-password-field";
+import { MfaSettings } from "@/app/components/mfa-settings";
 import { TextField } from "./text-field";
 
 type Status = { state: "idle" } | { state: "saving" } | { state: "saved"; text?: string } | { state: "error"; message: string };
@@ -17,6 +18,7 @@ export function SettingsForm() {
 
   return (
     <div className="account-settings">
+      <MfaSettings />
       <NameForm initialName={customer.fullName ?? ""} save={updateName} />
       <EmailForm email={customer.email} pendingEmail={customer.pendingEmail} save={changeEmail} />
       <PasswordForm save={changePassword} context={{ email: customer?.email, name: customer?.fullName ?? undefined }} />
